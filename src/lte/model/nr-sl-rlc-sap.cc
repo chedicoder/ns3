@@ -17,14 +17,16 @@
  *
  */
 
-#include "ns3/nr-sl-rlc-sap.h"
+#include "nr-sl-rlc-sap.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-NrSlRlcSapProvider::~NrSlRlcSapProvider ()
+NrSlRlcSapProvider::~NrSlRlcSapProvider()
 {
 }
-NrSlRlcSapUser::~NrSlRlcSapUser ()
+
+NrSlRlcSapUser::~NrSlRlcSapUser()
 {
 }
 

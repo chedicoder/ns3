@@ -26,7 +26,7 @@ SOURCES = \
 	source/hash-functions.rst \
 	source/helpers.rst \
 	source/how-to-write-tests.rst \
-	source/logging.rst \
+	source/logging-asserts.rst \
 	source/new-models.rst \
 	source/new-modules.rst \
 	source/object-model.rst \
@@ -58,9 +58,9 @@ SOURCES = \
 	${SRC}/stats/doc/adaptor.rst \
 	${SRC}/stats/doc/scope-and-limitations.rst \
 
-# list all manual figure files that need to be copied to 
+# list all manual figure files that need to be copied to
 # $SOURCETEMP/figures.  For each figure to be included in all
-# documentation formats (html, latex...) the following formats are supported: 
+# documentation formats (html, latex...) the following formats are supported:
 #  1) a single .dia file (preferred option, because it can be edited)
 #  2) a single .eps file
 #  3) both a .pdf and .png file
@@ -77,7 +77,6 @@ SOURCEFIGS = \
 	figures/hotspot-setup.png \
 	figures/hotspot-top-down.png \
 	figures/perfetto-trace-cmake.png \
-	figures/uprof-collect-callstack.png \
 	figures/uprof-collect-callstack.png \
 	figures/uprof-profile-application.png \
 	figures/uprof-select-events.png \
@@ -170,7 +169,7 @@ help:
 
 copy-sources:  $(SOURCES)
 	@rm -rf $(SOURCETEMP)
-	@mkdir -p $(SOURCETEMP) 
+	@mkdir -p $(SOURCETEMP)
 	@mkdir -p $(FIGURES)
 	@cp -r $(SOURCES) $(SOURCETEMP)
 	@cp -r $(SOURCEFIGS) $(FIGURES)

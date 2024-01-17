@@ -17,18 +17,16 @@
  *
  */
 
-
 #include "nr-sl-ue-cmac-sap.h"
 
+namespace ns3
+{
 
-namespace ns3 {
-
-
-NrSlUeCmacSapProvider::~NrSlUeCmacSapProvider ()
+NrSlUeCmacSapProvider::~NrSlUeCmacSapProvider()
 {
 }
 
-NrSlUeCmacSapUser::~NrSlUeCmacSapUser ()
+NrSlUeCmacSapUser::~NrSlUeCmacSapUser()
 {
 }
 

@@ -19,17 +19,15 @@
 
 #include "nr-sl-ue-bwpm-rrc-sap.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-
-NrSlUeBwpmRrcSapProvider::~NrSlUeBwpmRrcSapProvider ()
+NrSlUeBwpmRrcSapProvider::~NrSlUeBwpmRrcSapProvider()
 {
 }
 
-
-NrSlUeBwpmRrcSapUser::~NrSlUeBwpmRrcSapUser ()
+NrSlUeBwpmRrcSapUser::~NrSlUeBwpmRrcSapUser()
 {
 }
-
 
 } // end of namespace ns3

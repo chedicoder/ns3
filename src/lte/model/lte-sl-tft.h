@@ -36,14 +36,14 @@
 #ifndef LTE_SL_TFT_H
 #define LTE_SL_TFT_H
 
-
-#include <ns3/simple-ref-count.h>
 #include <ns3/ipv4-address.h>
 #include <ns3/ipv6-address.h>
+#include <ns3/simple-ref-count.h>
 
 #include <list>
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup Lte
@@ -58,119 +58,118 @@ namespace ns3 {
  */
 class LteSlTft : public SimpleRefCount<LteSlTft>
 {
-public:
-  /**
-   * \brief Indicates the direction of the traffic that is to be classified.
-   */
-  enum class Direction
-  {
-    TRANSMIT = 1,
-    RECEIVE = 2,
-    BIDIRECTIONAL = 3,
-    INVALID = 4
-  };
+  public:
+    /**
+     * \brief Indicates the direction of the traffic that is to be classified.
+     */
+    enum class Direction
+    {
+        TRANSMIT = 1,
+        RECEIVE = 2,
+        BIDIRECTIONAL = 3,
+        INVALID = 4
+    };
 
-  /**
-   * \brief Indicates the type of communication.
-   */
-  enum class CommType
-  {
-    Broadcast = 1,
-    GroupCast = 2,
-    Uincast = 3,
-    INVALID = 4
-  };
+    /**
+     * \brief Indicates the type of communication.
+     */
+    enum class CommType
+    {
+        Broadcast = 1,
+        GroupCast = 2,
+        Uincast = 3,
+        INVALID = 4
+    };
 
-  /**
-   * \brief Constructor (sets remote address only)
-   *
-   * \param d The direction
-   * \param commType The communication type
-   * \param remoteAddr The IPv4 address of the remote
-   * \param dstL2Id The destination layer 2 id
-   */
-  LteSlTft (Direction d, CommType commType, Ipv4Address remoteAddr, uint32_t dstL2Id);
+    /**
+     * \brief Constructor (sets remote address only)
+     *
+     * \param d The direction
+     * \param commType The communication type
+     * \param remoteAddr The IPv4 address of the remote
+     * \param dstL2Id The destination layer 2 id
+     */
+    LteSlTft(Direction d, CommType commType, Ipv4Address remoteAddr, uint32_t dstL2Id);
 
-  /**
-   * \brief Constructor (sets remote address only)
-   *
-   * \param d The direction
-   * \param commType The communication type
-   * \param remoteAddr The IPv6 address of the remote
-   * \param dstL2Id The destination layer 2 id
-   */
-  LteSlTft (Direction d, CommType commType, Ipv6Address remoteAddr, uint32_t dstL2Id);
+    /**
+     * \brief Constructor (sets remote address only)
+     *
+     * \param d The direction
+     * \param commType The communication type
+     * \param remoteAddr The IPv6 address of the remote
+     * \param dstL2Id The destination layer 2 id
+     */
+    LteSlTft(Direction d, CommType commType, Ipv6Address remoteAddr, uint32_t dstL2Id);
 
-  /**
-   * \brief Constructor for copy
-   *
-   * \param tft The TFT to copy
-   */
-  LteSlTft (Ptr<LteSlTft> tft);
+    /**
+     * \brief Constructor for copy
+     *
+     * \param tft The TFT to copy
+     */
+    LteSlTft(Ptr<LteSlTft> tft);
 
-  /**
-   * \brief Function to evaluate if the SL TFT matches the remote IPv4 address
-   *
-   * \param ra the remote address
-   * \return true if the TFT matches with the parameters, false otherwise.
-   */
-  bool Matches (Ipv4Address ra);
+    /**
+     * \brief Function to evaluate if the SL TFT matches the remote IPv4 address
+     *
+     * \param ra the remote address
+     * \return true if the TFT matches with the parameters, false otherwise.
+     */
+    bool Matches(Ipv4Address ra);
 
-  /**
-   * \brief Function to evaluate if the SL TFT matches the remote IPv6 address
-   *
-   * \param ra the remote address
-   *
-   * \return true if the TFT matches with the
-   * parameters, false otherwise.
-   */
-  bool Matches (Ipv6Address ra);
+    /**
+     * \brief Function to evaluate if the SL TFT matches the remote IPv6 address
+     *
+     * \param ra the remote address
+     *
+     * \return true if the TFT matches with the
+     * parameters, false otherwise.
+     */
+    bool Matches(Ipv6Address ra);
 
-  /**
-   * \brief Function to evaluate if the SL TFT is completely equal to another SL TFT
-   *
-   * \param tft the tft to compare
-   * \return true if the provided SL TFT matches with the
-   *         actual SL TFT parameters, false otherwise.
-   */
-  bool Equals (Ptr<LteSlTft> tft);
+    /**
+     * \brief Function to evaluate if the SL TFT is completely equal to another SL TFT
+     *
+     * \param tft the tft to compare
+     * \return true if the provided SL TFT matches with the
+     *         actual SL TFT parameters, false otherwise.
+     */
+    bool Equals(Ptr<LteSlTft> tft);
 
-  /**
-   * \brief Gets the Destination L2 id associated with the TFT
-   * \return The Destination L2 address associated with the TFT
-   */
-  uint32_t GetDstL2Id ();
+    /**
+     * \brief Gets the Destination L2 id associated with the TFT
+     * \return The Destination L2 address associated with the TFT
+     */
+    uint32_t GetDstL2Id();
 
-  /**
-   * \brief Indicates if the TFT is for an incoming sidelink bearer
-   * \return true if the TFT is for an incoming sidelink bearer
-   */
-  bool isReceive ();
+    /**
+     * \brief Indicates if the TFT is for an incoming sidelink bearer
+     * \return true if the TFT is for an incoming sidelink bearer
+     */
+    bool isReceive();
 
-  /**
-   * \brief Indicates if the TFT is for an outgoing sidelink bearer
-   * \return true if the TFT is for an outgoing sidelink bearer
-   */
-  bool isTransmit ();
+    /**
+     * \brief Indicates if the TFT is for an outgoing sidelink bearer
+     * \return true if the TFT is for an outgoing sidelink bearer
+     */
+    bool isTransmit();
 
-  /**
-   * \brief Indicates if the TFT is for unicast communication
-   * \return true if the TFT is for the unicast communication
-   */
-  bool isUnicast ();
+    /**
+     * \brief Indicates if the TFT is for unicast communication
+     * \return true if the TFT is for the unicast communication
+     */
+    bool isUnicast();
 
-private:
-  Direction m_direction {Direction::INVALID}; /**< whether the filter needs to be applied
-                                               * to sending or receiving only, or in both cases
-                                               */
-  CommType m_commType {CommType::INVALID}; //!< The type of communication
-  bool m_hasRemoteAddress {false};      //!< Indicates if the TFT has remoteAddress information
-  Ipv4Address m_remoteAddress {Ipv4Address::GetZero ()};        //!< IPv4 address of the remote host
-  Ipv6Address m_remoteAddress6 {Ipv6Address::GetZero ()};       //!< IPv6 address of the remote host
-  Ipv4Mask m_remoteMask {Ipv4Mask::GetZero ()};         //!< IPv4 address mask of the remote host
-  Ipv6Prefix m_remoteMask6 {Ipv6Prefix::GetZero ()};    //!< IPv6 address mask of the remote host
-  uint32_t m_dstL2Id {0};      //!< 24 bit L2 id of remote entity
-
+  private:
+    Direction m_direction{Direction::INVALID}; /**< whether the filter needs to be applied
+                                                * to sending or receiving only, or in both cases
+                                                */
+    CommType m_commType{CommType::INVALID};    //!< The type of communication
+    bool m_hasRemoteAddress{false}; //!< Indicates if the TFT has remoteAddress information
+    Ipv4Address m_remoteAddress{Ipv4Address::GetZero()};  //!< IPv4 address of the remote host
+    Ipv6Address m_remoteAddress6{Ipv6Address::GetZero()}; //!< IPv6 address of the remote host
+    Ipv4Mask m_remoteMask{Ipv4Mask::GetZero()};           //!< IPv4 address mask of the remote host
+    Ipv6Prefix m_remoteMask6{Ipv6Prefix::GetZero()};      //!< IPv6 address mask of the remote host
+    uint32_t m_dstL2Id{0};                                //!< 24 bit L2 id of remote entity
 };
 
 } // namespace ns3

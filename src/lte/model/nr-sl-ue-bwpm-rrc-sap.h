@@ -20,18 +20,19 @@
 #ifndef NR_SL_UE_BWPM_RRC_SAP_H
 #define NR_SL_UE_BWPM_RRC_SAP_H
 
-#include <ns3/lte-rrc-sap.h>
-#include <ns3/eps-bearer.h>
-#include <ns3/lte-ue-cmac-sap.h>
-#include <ns3/lte-mac-sap.h>
-#include <ns3/lte-ue-ccm-rrc-sap.h>
-#include <ns3/nr-sl-ue-cmac-sap.h>
+#include "eps-bearer.h"
+#include "lte-mac-sap.h"
+#include "lte-rrc-sap.h"
+#include "lte-ue-ccm-rrc-sap.h"
+#include "lte-ue-cmac-sap.h"
+#include "nr-sl-ue-cmac-sap.h"
+
 #include <map>
 
+namespace ns3
+{
 
-namespace ns3 {
-
-  class LteMacSapUser;
+class LteMacSapUser;
 
 /**
  * \ingroup lte
@@ -45,49 +46,53 @@ namespace ns3 {
  */
 class NrSlUeBwpmRrcSapProvider
 {
+  public:
+    virtual ~NrSlUeBwpmRrcSapProvider();
 
-public:
+    /// SlLcsInfo structure
+    struct SlLcInfoBwpm
+    {
+        uint8_t bwpId;                                            ///< bandwidth part ID
+        NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo; ///< logical channel config
+        NrSlMacSapUser* msu;                                      ///< MAC SAP User
+    };
 
-  virtual ~NrSlUeBwpmRrcSapProvider ();
-  /// SlLcsInfo structure
-  struct SlLcInfoBwpm
-  {
-    uint8_t bwpId; ///< bandwidth part ID
-    NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo; ///< logical channel config
-    NrSlMacSapUser *msu; ///< MAC SAP User
-  };
+    /**
+     * \brief Add a new NR Sidelink Data Radio Bearer Logical Channel (LC)
+     *
+     * \param lcInfo is the Sidelink Logical Channel Information
+     * \param msu is the pointer to NrSlMacSapUser, which MAC uses to call RLC methods
+     * \return vector of LcsConfig contains the lc configuration for each MAC
+     *         the size of the vector is equal to the number of bandwidth part manager enabled.
+     */
+    virtual std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> AddNrSlDrbLc(
+        const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& lcInfo,
+        NrSlMacSapUser* msu) = 0;
 
-  /**
-   * \brief Add a new NR Sidelink Data Radio Bearer Logical Channel (LC)
-   *
-   * \param lcInfo is the Sidelink Logical Channel Information
-   * \param msu is the pointer to NrSlMacSapUser, which MAC uses to call RLC methods
-   * \return vector of LcsConfig contains the lc configuration for each MAC
-   *         the size of the vector is equal to the number of bandwidth part manager enabled.
-   */
-  virtual std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> AddNrSlDrbLc (const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo &lcInfo, NrSlMacSapUser* msu) = 0;
-
-  /**
-   * \brief Remove an existing NR Sidelink Data Radio Bearer Logical Channel for a UE in the NrSlBwpManagerUe
-   *
-   * \param slLcId is the Sidelink Logical Channel Id
-   * \param srcL2Id is the Source L2 ID
-   * \param dstL2Id is the Destination L2 ID
-   *
-   * \return A vector containing the BWP ids for which the LC was removed.
-   */
-  virtual std::vector<uint8_t> RemoveNrSlDrbLc (uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id) = 0;
-  /**
-   * \brief Reset NR Sidelink Data Radio Bearer LC map
-   *
-   */
-  virtual void ResetNrSlDrbLcMap () = 0;
-  /**
-   * \brief Set Bwp Id Container
-   *
-   * \param bwpIdVec The container of SL BWP ids
-   */
-  virtual void SetBwpIdContainer (const std::set<uint8_t> &bwpIdVec) = 0;
+    /**
+     * \brief Remove an existing NR Sidelink Data Radio Bearer Logical Channel for a UE in the
+     * NrSlBwpManagerUe
+     *
+     * \param slLcId is the Sidelink Logical Channel Id
+     * \param srcL2Id is the Source L2 ID
+     * \param dstL2Id is the Destination L2 ID
+     *
+     * \return A vector containing the BWP ids for which the LC was removed.
+     */
+    virtual std::vector<uint8_t> RemoveNrSlDrbLc(uint8_t slLcId,
+                                                 uint32_t srcL2Id,
+                                                 uint32_t dstL2Id) = 0;
+    /**
+     * \brief Reset NR Sidelink Data Radio Bearer LC map
+     *
+     */
+    virtual void ResetNrSlDrbLcMap() = 0;
+    /**
+     * \brief Set Bwp Id Container
+     *
+     * \param bwpIdVec The container of SL BWP ids
+     */
+    virtual void SetBwpIdContainer(const std::set<uint8_t>& bwpIdVec) = 0;
 
 }; // end of class NrSlUeBwpmRrcSapProvider
 
@@ -104,54 +109,65 @@ public:
 template <class C>
 class MemberNrSlUeBwpmRrcSapProvider : public NrSlUeBwpmRrcSapProvider
 {
-public:
-  /**
-   * \brief Constructor
-   *
-   * \param owner the owner class
-   */
-  MemberNrSlUeBwpmRrcSapProvider (C* owner);
+  public:
+    /**
+     * \brief Constructor
+     *
+     * \param owner the owner class
+     */
+    MemberNrSlUeBwpmRrcSapProvider(C* owner);
 
-  // inherited from NrSlUeBwpmRrcSapProvider
-  virtual std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> AddNrSlDrbLc (const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo &lcInfo, NrSlMacSapUser* msu);
-  virtual std::vector<uint8_t> RemoveNrSlDrbLc (uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id);
-  virtual void ResetNrSlDrbLcMap ();
-  virtual void SetBwpIdContainer (const std::set<uint8_t> &bwpIdVec);
-private:
-  C* m_owner; ///< the owner class
+    // inherited from NrSlUeBwpmRrcSapProvider
+    virtual std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> AddNrSlDrbLc(
+        const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& lcInfo,
+        NrSlMacSapUser* msu);
+    virtual std::vector<uint8_t> RemoveNrSlDrbLc(uint8_t slLcId,
+                                                 uint32_t srcL2Id,
+                                                 uint32_t dstL2Id);
+    virtual void ResetNrSlDrbLcMap();
+    virtual void SetBwpIdContainer(const std::set<uint8_t>& bwpIdVec);
+
+  private:
+    C* m_owner; ///< the owner class
 };
 
 template <class C>
-MemberNrSlUeBwpmRrcSapProvider<C>::MemberNrSlUeBwpmRrcSapProvider (C* owner)
-  : m_owner (owner)
+MemberNrSlUeBwpmRrcSapProvider<C>::MemberNrSlUeBwpmRrcSapProvider(C* owner)
+    : m_owner(owner)
 {
 }
 
 template <class C>
-std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> MemberNrSlUeBwpmRrcSapProvider<C>::AddNrSlDrbLc (const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo &lcInfo, NrSlMacSapUser* msu)
+std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm>
+MemberNrSlUeBwpmRrcSapProvider<C>::AddNrSlDrbLc(
+    const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& lcInfo,
+    NrSlMacSapUser* msu)
 {
-  return m_owner->DoAddNrSlDrbLc (lcInfo, msu);
+    return m_owner->DoAddNrSlDrbLc(lcInfo, msu);
 }
 
 template <class C>
-std::vector<uint8_t> MemberNrSlUeBwpmRrcSapProvider<C>::RemoveNrSlDrbLc (uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id)
+std::vector<uint8_t>
+MemberNrSlUeBwpmRrcSapProvider<C>::RemoveNrSlDrbLc(uint8_t slLcId,
+                                                   uint32_t srcL2Id,
+                                                   uint32_t dstL2Id)
 {
-  return m_owner->DoRemoveNrSlDrbLc (slLcId, srcL2Id, dstL2Id);
+    return m_owner->DoRemoveNrSlDrbLc(slLcId, srcL2Id, dstL2Id);
 }
 
 template <class C>
-void MemberNrSlUeBwpmRrcSapProvider<C>::ResetNrSlDrbLcMap ()
+void
+MemberNrSlUeBwpmRrcSapProvider<C>::ResetNrSlDrbLcMap()
 {
-  return m_owner->DoResetNrSlDrbLcMap ();
+    return m_owner->DoResetNrSlDrbLcMap();
 }
 
 template <class C>
-void MemberNrSlUeBwpmRrcSapProvider<C>::SetBwpIdContainer (const std::set<uint8_t> &bwpIdVec)
+void
+MemberNrSlUeBwpmRrcSapProvider<C>::SetBwpIdContainer(const std::set<uint8_t>& bwpIdVec)
 {
-  return m_owner->DoSetBwpIdContainer (bwpIdVec);
+    return m_owner->DoSetBwpIdContainer(bwpIdVec);
 }
-
-
 
 /**
  * \ingroup lte
@@ -165,9 +181,8 @@ void MemberNrSlUeBwpmRrcSapProvider<C>::SetBwpIdContainer (const std::set<uint8_
  */
 class NrSlUeBwpmRrcSapUser
 {
- 
-public:
-  virtual ~NrSlUeBwpmRrcSapUser ();
+  public:
+    virtual ~NrSlUeBwpmRrcSapUser();
 
 }; // end of class NrSlUeBwpmRrcSapUser
 
@@ -184,26 +199,24 @@ public:
 template <class C>
 class MemberNrSlUeBwpmRrcSapUser : public NrSlUeBwpmRrcSapUser
 {
-public:
-  /**
-   * \brief Constructor
-   *
-   * \param owner the owner class
-   */
-  MemberNrSlUeBwpmRrcSapUser (C* owner);
+  public:
+    /**
+     * \brief Constructor
+     *
+     * \param owner the owner class
+     */
+    MemberNrSlUeBwpmRrcSapUser(C* owner);
 
-private:
-  C* m_owner; ///< the owner class
+  private:
+    C* m_owner; ///< the owner class
 };
 
 template <class C>
-MemberNrSlUeBwpmRrcSapUser<C>::MemberNrSlUeBwpmRrcSapUser (C* owner)
-: m_owner (owner)
-  {
-  }
+MemberNrSlUeBwpmRrcSapUser<C>::MemberNrSlUeBwpmRrcSapUser(C* owner)
+    : m_owner(owner)
+{
+}
 
 } // end of namespace ns3
 
-
 #endif /* NR_SL_UE_BWPM_RRC_SAP_H */
-

@@ -17,15 +17,16 @@
  *
  */
 
-#include "ns3/nr-sl-pdcp-sap.h"
+#include "nr-sl-pdcp-sap.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-NrSlPdcpSapProvider::~NrSlPdcpSapProvider ()
+NrSlPdcpSapProvider::~NrSlPdcpSapProvider()
 {
 }
 
-NrSlPdcpSapUser::~NrSlPdcpSapUser ()
+NrSlPdcpSapUser::~NrSlPdcpSapUser()
 {
 }
 

@@ -19,23 +19,23 @@
 
 #include "nr-sl-rrc-sap.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-  NrSlUeRrcSapUser::~NrSlUeRrcSapUser ()
-  {
-  }
-
-  NrSlUeRrcSapProvider::~NrSlUeRrcSapProvider ()
-  {
-  }
-
-  NrSlEnbRrcSapUser::~NrSlEnbRrcSapUser ()
-  {
-  }
-
-  NrSlEnbRrcSapProvider::~NrSlEnbRrcSapProvider ()
-  {
-  }
-
-
+NrSlUeRrcSapUser::~NrSlUeRrcSapUser()
+{
 }
+
+NrSlUeRrcSapProvider::~NrSlUeRrcSapProvider()
+{
+}
+
+NrSlEnbRrcSapUser::~NrSlEnbRrcSapUser()
+{
+}
+
+NrSlEnbRrcSapProvider::~NrSlEnbRrcSapProvider()
+{
+}
+
+} // namespace ns3

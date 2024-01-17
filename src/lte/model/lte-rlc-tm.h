@@ -1,4 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2011,2012 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
@@ -15,19 +14,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Manuel Requena <manuel.requena@cttc.es> 
+ * Author: Manuel Requena <manuel.requena@cttc.es>
  *         Nicola Baldo <nbaldo@cttc.es>
  */
 
 #ifndef LTE_RLC_TM_H
 #define LTE_RLC_TM_H
 
-#include "ns3/lte-rlc.h"
+#include "lte-rlc.h"
 
 #include <ns3/event-id.h>
+
 #include <map>
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * LTE RLC Transparent Mode (TM), see 3GPP TS 36.322
@@ -38,96 +39,98 @@ namespace ns3 {
  */
 class LteRlcTm : public LteRlc
 {
-public:
-  LteRlcTm ();
-  virtual ~LteRlcTm ();
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
-  static TypeId GetTypeId (void);
-  virtual void DoDispose ();
-
-  /**
-   * RLC SAP
-   *
-   * \param p packet
-   */
-  virtual void DoTransmitPdcpPdu (Ptr<Packet> p);
-
-  /**
-   * MAC SAP
-   * 
-   * \param txOpParams the LteMacSapUser::TxOpportunityParameters
-   */
-  virtual void DoNotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters txOpParams);
-  /**
-   * Notify HARQ deliver failure
-   */
-  virtual void DoNotifyHarqDeliveryFailure ();
-  virtual void DoReceivePdu (LteMacSapUser::ReceivePduParameters rxPduParams);
-
-private:
-  /// Expire RBS timer function
-  void ExpireRbsTimer (void);
-  /// Report buffer status
-  void DoReportBufferStatus ();
-
-private:
-  /**
-   * \brief Store an incoming (from layer above us) PDU, waiting to transmit it
-   */
-  struct TxPdu
-  {
+  public:
+    LteRlcTm();
+    ~LteRlcTm() override;
     /**
-     * \brief TxPdu default constructor
-     * \param pdu the PDU
-     * \param time the arrival time
+     * \brief Get the type ID.
+     * \return the object TypeId
      */
-    TxPdu (const Ptr<Packet> &pdu, const Time &time) :
-      m_pdu (pdu),
-      m_waitingSince (time)
-    { }
+    static TypeId GetTypeId();
+    void DoDispose() override;
 
-    TxPdu () = delete;
+    /**
+     * RLC SAP
+     *
+     * \param p packet
+     */
+    void DoTransmitPdcpPdu(Ptr<Packet> p) override;
 
-    Ptr<Packet> m_pdu;           ///< PDU
-    Time        m_waitingSince;  ///< Layer arrival time
-  };
+    /**
+     * MAC SAP
+     *
+     * \param txOpParams the LteMacSapUser::TxOpportunityParameters
+     */
+    void DoNotifyTxOpportunity(LteMacSapUser::TxOpportunityParameters txOpParams) override;
+    /**
+     * Notify HARQ deliver failure
+     */
+    void DoNotifyHarqDeliveryFailure() override;
+    void DoReceivePdu(LteMacSapUser::ReceivePduParameters rxPduParams) override;
 
-  std::vector < TxPdu > m_txBuffer; ///< Transmission buffer
+  private:
+    /// Expire RBS timer function
+    void ExpireRbsTimer();
+    /// Report buffer status
+    void DoReportBufferStatus();
 
-  uint32_t m_maxTxBufferSize; ///< maximum transmit buffer size
-  uint32_t m_txBufferSize; ///< transmit buffer size
+  private:
+    /**
+     * \brief Store an incoming (from layer above us) PDU, waiting to transmit it
+     */
+    struct TxPdu
+    {
+        /**
+         * \brief TxPdu default constructor
+         * \param pdu the PDU
+         * \param time the arrival time
+         */
+        TxPdu(const Ptr<Packet>& pdu, const Time& time)
+            : m_pdu(pdu),
+              m_waitingSince(time)
+        {
+        }
 
-  EventId m_rbsTimer; ///< RBS timer
+        TxPdu() = delete;
 
-  //NR Sidelink
-protected:
-  /**
-   * \brief Send a NR Sidelink PDCP PDU to the RLC for transmission
-   *
-   * This method is to be called when upper PDCP entity has a NR Sidelink PDCP
-   * PDU ready to send
-   *
-   * \param params the NrSlTransmitPdcpPduParameters
-   */
-  void DoTransmitNrSlPdcpPdu (const NrSlRlcSapProvider::NrSlTransmitPdcpPduParameters &params);
-  /**
-   * \brief Called by the MAC to notify the RLC that the scheduler granted a
-   * transmission opportunity to this RLC instance.
-   *
-   * \param params the NrSlTxOpportunityParameters
-   */
-  void DoNotifyNrSlTxOpportunity (const NrSlMacSapUser::NrSlTxOpportunityParameters &params);
-  /**
-   * \brief Called by the MAC to notify the RLC of the reception of a new PDU
-   *
-   * \param rxPduParams the NrSlReceiveRlcPduParameters
-   */
-  void DoReceiveNrSlRlcPdu (NrSlMacSapUser::NrSlReceiveRlcPduParameters rxPduParams);
+        Ptr<Packet> m_pdu;   ///< PDU
+        Time m_waitingSince; ///< Layer arrival time
+    };
+
+    std::vector<TxPdu> m_txBuffer; ///< Transmission buffer
+
+    uint32_t m_maxTxBufferSize; ///< maximum transmit buffer size
+    uint32_t m_txBufferSize;    ///< transmit buffer size
+
+    EventId m_rbsTimer; ///< RBS timer
+
+    // NR Sidelink
+  protected:
+    /**
+     * \brief Send a NR Sidelink PDCP PDU to the RLC for transmission
+     *
+     * This method is to be called when upper PDCP entity has a NR Sidelink PDCP
+     * PDU ready to send
+     *
+     * \param params the NrSlTransmitPdcpPduParameters
+     */
+    void DoTransmitNrSlPdcpPdu(
+        const NrSlRlcSapProvider::NrSlTransmitPdcpPduParameters& params) override;
+    /**
+     * \brief Called by the MAC to notify the RLC that the scheduler granted a
+     * transmission opportunity to this RLC instance.
+     *
+     * \param params the NrSlTxOpportunityParameters
+     */
+    void DoNotifyNrSlTxOpportunity(
+        const NrSlMacSapUser::NrSlTxOpportunityParameters& params) override;
+    /**
+     * \brief Called by the MAC to notify the RLC of the reception of a new PDU
+     *
+     * \param rxPduParams the NrSlReceiveRlcPduParameters
+     */
+    void DoReceiveNrSlRlcPdu(NrSlMacSapUser::NrSlReceiveRlcPduParameters rxPduParams) override;
 };
-
 
 } // namespace ns3
 
