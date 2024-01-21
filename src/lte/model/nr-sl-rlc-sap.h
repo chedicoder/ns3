@@ -128,15 +128,15 @@ class MemberNrSlRlcSapProvider : public NrSlRlcSapProvider
      * \param rlc the RLC
      */
     MemberNrSlRlcSapProvider(C* rlc);
+    MemberNrSlRlcSapProvider() = delete;
 
     /**
      * Interface implemented from NrSlRlcSapProvider
      * \param params the NrSlTransmitPdcpPduParameters
      */
-    virtual void TransmitNrSlPdcpPdu(const NrSlTransmitPdcpPduParameters& params);
+    void TransmitNrSlPdcpPdu(const NrSlTransmitPdcpPduParameters& params) override;
 
   private:
-    MemberNrSlRlcSapProvider();
     C* m_rlc; //!< the RLC
 };
 
@@ -173,12 +173,12 @@ class MemberNrSlRlcSapUser : public NrSlRlcSapUser
      * \param pdcp the PDCP
      */
     MemberNrSlRlcSapUser(C* pdcp);
+    MemberNrSlRlcSapUser() = delete;
 
     // Interface implemented from NrSlRlcSapUser
-    virtual void ReceiveNrSlPdcpPdu(Ptr<Packet> p);
+    void ReceiveNrSlPdcpPdu(Ptr<Packet> p) override;
 
   private:
-    MemberNrSlRlcSapUser();
     C* m_pdcp; //!< the PDCP
 };
 

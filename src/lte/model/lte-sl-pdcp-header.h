@@ -66,7 +66,7 @@ class LteSlPdcpHeader : public Header
      * Creates a null header
      */
     LteSlPdcpHeader();
-    ~LteSlPdcpHeader();
+    ~LteSlPdcpHeader() override;
 
     /**
      * \brief Set the SDU type (3-bit value)
@@ -128,13 +128,13 @@ class LteSlPdcpHeader : public Header
      *  Register this type.
      *  \return The object TypeId.
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
-    virtual TypeId GetInstanceTypeId(void) const;
-    virtual void Print(std::ostream& os) const;
-    virtual uint32_t GetSerializedSize(void) const;
-    virtual void Serialize(Buffer::Iterator start) const;
-    virtual uint32_t Deserialize(Buffer::Iterator start);
+    TypeId GetInstanceTypeId() const override;
+    void Print(std::ostream& os) const override;
+    uint32_t GetSerializedSize() const override;
+    void Serialize(Buffer::Iterator start) const override;
+    uint32_t Deserialize(Buffer::Iterator start) override;
 
   private:
     uint8_t m_sduType;         ///< The SDU type

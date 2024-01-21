@@ -146,7 +146,7 @@ class NrSlCommResourcePool : public Object
     /**
      * \brief Destructor
      */
-    virtual ~NrSlCommResourcePool();
+    ~NrSlCommResourcePool() override;
 
     /**
      * \brief Get the type ID.

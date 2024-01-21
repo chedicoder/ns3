@@ -108,15 +108,15 @@ class MemberNrSlUeCphySapProvider : public NrSlUeCphySapProvider
      * \param owner The owner class
      */
     MemberNrSlUeCphySapProvider(C* owner);
+    MemberNrSlUeCphySapProvider() = delete;
 
     // methods inherited from NrSlUeCphySapProvider go here
     // NR Sidelink communication
-    virtual void AddNrSlCommTxPool(Ptr<const NrSlCommResourcePool> txPool);
-    virtual void AddNrSlCommRxPool(Ptr<const NrSlCommResourcePool> rxPool);
-    virtual uint32_t GetBwInRbs() const;
+    void AddNrSlCommTxPool(Ptr<const NrSlCommResourcePool> txPool) override;
+    void AddNrSlCommRxPool(Ptr<const NrSlCommResourcePool> rxPool) override;
+    uint32_t GetBwInRbs() const override;
 
   private:
-    MemberNrSlUeCphySapProvider();
     C* m_owner; ///< the owner class
 };
 

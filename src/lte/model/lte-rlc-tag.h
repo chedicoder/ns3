@@ -80,7 +80,7 @@ class RlcTag : public Tag
      * Get the RNTI of the transmitting UE
      * @return the RNTI of the transmitting UE
      */
-    uint16_t GetTxRnti(void) const
+    uint16_t GetTxRnti() const
     {
         return m_txRnti;
     }

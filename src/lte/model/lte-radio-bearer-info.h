@@ -106,7 +106,7 @@ class NrSlDataRadioBearerInfo : public LteRadioBearerInfo
      *
      * \return the object TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     uint8_t m_logicalChannelIdentity{0};                    //!< The logical channel identity
     LteRrcSap::LogicalChannelConfig m_logicalChannelConfig; //!< The logical channel configuration
     uint32_t m_sourceL2Id{0};                               //!< The Sidelink source L2 source id

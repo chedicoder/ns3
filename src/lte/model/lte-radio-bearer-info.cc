@@ -110,7 +110,7 @@ LteSignalingRadioBearerInfo::GetTypeId()
 }
 
 TypeId
-NrSlDataRadioBearerInfo::GetTypeId(void)
+NrSlDataRadioBearerInfo::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrSlDataRadioBearerInfo")

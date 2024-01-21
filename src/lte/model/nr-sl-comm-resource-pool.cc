@@ -64,7 +64,7 @@ NrSlCommResourcePool::operator==(const NrSlCommResourcePool& other) const
     // if Physical SL pool is equal that means SL Bitmap and TDD pattern are
     // also equal.
     bool equal = m_phySlPoolMap == other.m_phySlPoolMap;
-    if (equal == false)
+    if (!equal)
     {
         return equal;
     }
@@ -84,7 +84,7 @@ NrSlCommResourcePool::operator==(const NrSlCommResourcePool& other) const
         std::array<LteRrcSap::SlResourcePoolConfigNr, MAX_NUM_OF_TX_POOL> slTxPoolOther =
             slBwpConfigOther.slBwpPoolConfigCommonNr.slTxPoolSelectedNormal;
 
-        for (uint16_t poolIndex = 0; poolIndex < slTxPoolLocal.size(); ++poolIndex)
+        for (uint32_t poolIndex = 0; poolIndex < slTxPoolLocal.size(); ++poolIndex)
         {
             equal = slTxPoolLocal.at(poolIndex).haveSlResourcePoolConfigNr ==
                         slTxPoolOther.at(poolIndex).haveSlResourcePoolConfigNr &&
@@ -124,7 +124,7 @@ NrSlCommResourcePool::operator==(const NrSlCommResourcePool& other) const
                 slTxPoolOther.at(poolIndex)
                     .slResourcePool.slUeSelectedConfigRp.slResourceReservePeriodList;
             bool listEquality = false;
-            for (uint16_t resPListIndex = 0; resPListIndex < listLocal.size(); ++resPListIndex)
+            for (uint32_t resPListIndex = 0; resPListIndex < listLocal.size(); ++resPListIndex)
             {
                 listEquality =
                     listLocal.at(resPListIndex).period == listOther.at(resPListIndex).period;
@@ -132,7 +132,7 @@ NrSlCommResourcePool::operator==(const NrSlCommResourcePool& other) const
 
             equal = equal && listEquality;
 
-            if (equal == false)
+            if (!equal)
             {
                 break;
             }
@@ -202,7 +202,7 @@ NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurretSlot,
     // t2_min as a function of numerology. Discussed in 3GPP meeting R1-2003807
     // also in TS 38.331 in SL-UE-SelectedConfigRP field descriptions
     uint16_t t2min = LteRrcSap::GetSlSelWindowValue(pool.slUeSelectedConfigRp.slSelectionWindow);
-    uint16_t multiplier = static_cast<uint16_t>(std::pow(2, numerology));
+    auto multiplier = static_cast<uint16_t>(std::pow(2, numerology));
     t2min = t2min * multiplier;
     NS_ABORT_MSG_IF(t2min > t2,
                     "T2min(" << t2min << ")"
@@ -245,7 +245,7 @@ NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurretSlot,
             uint16_t slMaxNumPerReserve =
                 LteRrcSap::GetSlMaxNumPerReserveValue(pool.slUeSelectedConfigRp.slMaxNumPerReserve);
             uint64_t absSlotIndex = i;
-            uint32_t slotOffset = static_cast<uint32_t>(i - absIndexCurretSlot);
+            auto slotOffset = static_cast<uint32_t>(i - absIndexCurretSlot);
 
             NrSlCommResourcePool::SlotInfo info(numSlPscchRbs,
                                                 slPscchSymStart,
@@ -331,10 +331,9 @@ NrSlCommResourcePool::BwpAndPoolIt
 NrSlCommResourcePool::ValidateBwpAndPoolId(uint8_t bwpId, uint16_t poolId) const
 {
     NS_LOG_FUNCTION(this << +bwpId << poolId);
-    NrSlCommResourcePool::PhySlPoolMap::const_iterator itBwp = m_phySlPoolMap.find(bwpId);
+    auto itBwp = m_phySlPoolMap.find(bwpId);
     NS_ABORT_MSG_IF(itBwp == m_phySlPoolMap.end(), "Unable to find bandwidth part id " << +bwpId);
-    std::unordered_map<uint16_t, std::vector<std::bitset<1>>>::const_iterator itPool =
-        itBwp->second.find(poolId);
+    auto itPool = itBwp->second.find(poolId);
     NS_ABORT_MSG_IF(itPool == itBwp->second.end(), "Unable to find pool id " << poolId);
 
     BwpAndPoolIt ret;
@@ -354,7 +353,7 @@ NrSlCommResourcePool::ValidateResvPeriod(uint8_t bwpId,
     const LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
     std::array<LteRrcSap::SlResourceReservePeriod, 16> resvPeriodList =
         pool.slUeSelectedConfigRp.slResourceReservePeriodList;
-    uint16_t periodInt = static_cast<uint16_t>(resvPeriod.GetMilliSeconds());
+    auto periodInt = static_cast<uint16_t>(resvPeriod.GetMilliSeconds());
     LteRrcSap::SlResourceReservePeriod resvPeriodEnum = LteRrcSap::GetSlResoResvPrdEnum(periodInt);
     bool found = false;
     for (const auto& it : resvPeriodList)
@@ -377,11 +376,11 @@ NrSlCommResourcePool::GetResvPeriodInSlots(uint8_t bwpId,
 {
     NS_LOG_FUNCTION(this << +bwpId << poolId << resvPeriod.GetMilliSeconds() << slotLength);
     [[maybe_unused]] NrSlCommResourcePool::BwpAndPoolIt ret = ValidateBwpAndPoolId(bwpId, poolId);
-    uint16_t periodInt = static_cast<uint16_t>(resvPeriod.GetMilliSeconds());
+    auto periodInt = static_cast<uint16_t>(resvPeriod.GetMilliSeconds());
 
     double numResvSlots = (periodInt / static_cast<double>(1000)) / slotLength.GetSeconds();
 
-    uint16_t rsvpInSlots = static_cast<uint16_t>(numResvSlots);
+    auto rsvpInSlots = static_cast<uint16_t>(numResvSlots);
     IsRsvpMultipOfPoolLen(bwpId, poolId, rsvpInSlots);
     return rsvpInSlots;
 }
@@ -394,12 +393,7 @@ NrSlCommResourcePool::IsSidelinkSlot(uint8_t bwpId, uint16_t poolId, uint64_t ab
     uint16_t absPoolIndex = GetAbsPoolIndex(bwpId, poolId, absSlotIndex);
     std::vector<std::bitset<1>> phyPool = GetNrSlPhyPool(bwpId, poolId);
     // trigger SL only when it is a SL slot
-    if (phyPool.at(absPoolIndex) == 1)
-    {
-        return true;
-    }
-
-    return false;
+    return phyPool.at(absPoolIndex) == 1;
 }
 
 uint16_t

@@ -42,11 +42,11 @@ class NrSlUeRrc : public Object
 
   public:
     NrSlUeRrc();
-    virtual ~NrSlUeRrc(void);
+    ~NrSlUeRrc() override;
 
     /// inherited from Object
   protected:
-    virtual void DoDispose();
+    void DoDispose() override;
 
   public:
     /**
@@ -71,7 +71,7 @@ class NrSlUeRrc : public Object
      *  Register this type.
      *  \return The object TypeId.
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * Map between logical channel id and data radio bearer for transmissions
      */

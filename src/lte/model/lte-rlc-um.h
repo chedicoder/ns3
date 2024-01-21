@@ -43,7 +43,7 @@ class LteRlcUm : public LteRlc
      * \brief Get the type ID.
      * \return the object TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     void DoDispose() override;
 
     /**
@@ -64,9 +64,9 @@ class LteRlcUm : public LteRlc
 
   private:
     /// Expire reordering timer
-    void ExpireReorderingTimer(void);
+    void ExpireReorderingTimer();
     /// Expire RBS timer
-    void ExpireRbsTimer(void);
+    void ExpireRbsTimer();
 
     /**
      * Is inside reordering window function
@@ -79,7 +79,7 @@ class LteRlcUm : public LteRlc
     bool IsInsideReorderingWindow(SequenceNumber10 seqNumber);
 
     /// Reassemble outside window
-    void ReassembleOutsideWindow(void);
+    void ReassembleOutsideWindow();
     /**
      * Reassemble SN interval function
      *
@@ -204,11 +204,11 @@ class LteRlcUm : public LteRlc
     /**
      * \brief Expire NR Sidelink reordering timer
      */
-    void ExpireNrSlReorderingTimer(void);
+    void ExpireNrSlReorderingTimer();
     /**
      * \brief Expire NR SL RBS timer
      */
-    void ExpireNrSlRbsTimer(void);
+    void ExpireNrSlRbsTimer();
     /**
      * \brief Do Report NR SL buffer status
      */
@@ -217,7 +217,7 @@ class LteRlcUm : public LteRlc
     /**
      * \brief NR Sidelink Reassemble outside window
      */
-    void NrSlReassembleOutsideWindow(void);
+    void NrSlReassembleOutsideWindow();
 
     /**
      * \brief NR Sidelink Reassemble SN interval function

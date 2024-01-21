@@ -156,14 +156,14 @@ class MemberNrSlUeRrcSapUser : public NrSlUeRrcSapUser
     MemberNrSlUeRrcSapUser(C* owner);
 
     // inherited from NRSlUeRrcSapUser
-    virtual const LteRrcSap::SidelinkPreconfigNr GetNrSlPreconfiguration();
-    virtual const std::vector<std::bitset<1>> GetPhysicalSlPool(
-        const std::vector<std::bitset<1>>& slBitMap);
-    virtual const std::set<uint8_t> GetBwpIdContainer();
-    virtual void AddNrSlDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slDrb);
-    virtual void AddNrSlRxDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slRxDrb);
-    virtual Ptr<NrSlDataRadioBearerInfo> GetSidelinkDataRadioBearer(uint32_t dstL2Id);
-    virtual uint8_t GetNextLcid(uint32_t dstL2Id);
+    const LteRrcSap::SidelinkPreconfigNr GetNrSlPreconfiguration() override;
+    const std::vector<std::bitset<1>> GetPhysicalSlPool(
+        const std::vector<std::bitset<1>>& slBitMap) override;
+    const std::set<uint8_t> GetBwpIdContainer() override;
+    void AddNrSlDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slDrb) override;
+    void AddNrSlRxDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slRxDrb) override;
+    Ptr<NrSlDataRadioBearerInfo> GetSidelinkDataRadioBearer(uint32_t dstL2Id) override;
+    uint8_t GetNextLcid(uint32_t dstL2Id) override;
 
   private:
     MemberNrSlUeRrcSapUser();
@@ -247,8 +247,8 @@ class MemberNrSlUeRrcSapProvider : public NrSlUeRrcSapProvider
     MemberNrSlUeRrcSapProvider(C* owner);
 
     // inherited from NRSlUeRrcSapProvider
-    virtual void PopulatePools();
-    virtual void SetSourceL2Id(uint32_t srcL2Id);
+    void PopulatePools() override;
+    void SetSourceL2Id(uint32_t srcL2Id) override;
 
   private:
     MemberNrSlUeRrcSapProvider();

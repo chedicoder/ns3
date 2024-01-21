@@ -138,7 +138,7 @@ class LteSlTft : public SimpleRefCount<LteSlTft>
      * \brief Gets the Destination L2 id associated with the TFT
      * \return The Destination L2 address associated with the TFT
      */
-    uint32_t GetDstL2Id();
+    uint32_t GetDstL2Id() const;
 
     /**
      * \brief Indicates if the TFT is for an incoming sidelink bearer

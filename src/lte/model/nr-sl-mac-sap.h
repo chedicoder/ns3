@@ -183,8 +183,8 @@ class MemberNrSlMacSapProvider : public NrSlMacSapProvider
     MemberNrSlMacSapProvider(C* mac);
 
     // inherited from NrSlMacSapProvider
-    virtual void TransmitNrSlRlcPdu(const NrSlRlcPduParameters& params);
-    virtual void ReportNrSlBufferStatus(const NrSlReportBufferStatusParameters& params);
+    void TransmitNrSlRlcPdu(const NrSlRlcPduParameters& params) override;
+    void ReportNrSlBufferStatus(const NrSlReportBufferStatusParameters& params) override;
 
   private:
     C* m_mac; ///< the MAC class
@@ -341,8 +341,8 @@ class MemberNrSlMacSapUser : public NrSlMacSapUser
     MemberNrSlMacSapUser(C* rlc);
 
     // inherited from NrSlMacSapUser
-    virtual void NotifyNrSlTxOpportunity(const NrSlTxOpportunityParameters& params);
-    virtual void ReceiveNrSlRlcPdu(NrSlReceiveRlcPduParameters params);
+    void NotifyNrSlTxOpportunity(const NrSlTxOpportunityParameters& params) override;
+    void ReceiveNrSlRlcPdu(NrSlReceiveRlcPduParameters params) override;
 
   private:
     C* m_rlc; ///< the RLC class

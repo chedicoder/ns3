@@ -120,7 +120,7 @@ LteSlTft::Equals(Ptr<LteSlTft> tft)
 }
 
 uint32_t
-LteSlTft::GetDstL2Id()
+LteSlTft::GetDstL2Id() const
 {
     return m_dstL2Id;
 }

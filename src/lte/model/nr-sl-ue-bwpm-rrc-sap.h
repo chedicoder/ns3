@@ -117,14 +117,14 @@ class MemberNrSlUeBwpmRrcSapProvider : public NrSlUeBwpmRrcSapProvider
     MemberNrSlUeBwpmRrcSapProvider(C* owner);
 
     // inherited from NrSlUeBwpmRrcSapProvider
-    virtual std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> AddNrSlDrbLc(
+    std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> AddNrSlDrbLc(
         const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& lcInfo,
-        NrSlMacSapUser* msu);
-    virtual std::vector<uint8_t> RemoveNrSlDrbLc(uint8_t slLcId,
-                                                 uint32_t srcL2Id,
-                                                 uint32_t dstL2Id);
-    virtual void ResetNrSlDrbLcMap();
-    virtual void SetBwpIdContainer(const std::set<uint8_t>& bwpIdVec);
+        NrSlMacSapUser* msu) override;
+    std::vector<uint8_t> RemoveNrSlDrbLc(uint8_t slLcId,
+                                         uint32_t srcL2Id,
+                                         uint32_t dstL2Id) override;
+    void ResetNrSlDrbLcMap() override;
+    void SetBwpIdContainer(const std::set<uint8_t>& bwpIdVec) override;
 
   private:
     C* m_owner; ///< the owner class

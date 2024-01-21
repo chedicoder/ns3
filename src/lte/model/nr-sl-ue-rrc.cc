@@ -39,7 +39,7 @@ NS_LOG_COMPONENT_DEFINE("NrSlUeRrc");
 NS_OBJECT_ENSURE_REGISTERED(NrSlUeRrc);
 
 TypeId
-NrSlUeRrc::GetTypeId(void)
+NrSlUeRrc::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrSlUeRrc")
                             .SetParent<Object>()
@@ -54,7 +54,7 @@ NrSlUeRrc::NrSlUeRrc()
     m_nrSlRrcSapUser = new MemberNrSlUeRrcSapUser<NrSlUeRrc>(this);
 }
 
-NrSlUeRrc::~NrSlUeRrc(void)
+NrSlUeRrc::~NrSlUeRrc()
 {
     NS_LOG_FUNCTION(this);
 }
@@ -188,7 +188,7 @@ NrSlUeRrc::DoGetPhysicalSlPool(const std::vector<std::bitset<1>>& slBitMap)
         if (*patternIt != NrSlUeRrc::LteNrTddSlotType::UL)
         {
             NS_LOG_DEBUG("Not an UL slot :  " << *patternIt << ", putting 0 in the final bitmap");
-            finalSlPool.push_back(0);
+            finalSlPool.emplace_back(0);
         }
         else if (*slBitMapit == 1)
         {
@@ -196,7 +196,7 @@ NrSlUeRrc::DoGetPhysicalSlPool(const std::vector<std::bitset<1>>& slBitMap)
             NS_LOG_DEBUG("It is an UL slot :  " << *patternIt << ", and SL bitmap value is "
                                                 << *slBitMapit
                                                 << ", putting 1 in the final bitmap");
-            finalSlPool.push_back(1);
+            finalSlPool.emplace_back(1);
             slBitMapit++;
         }
         else
@@ -205,7 +205,7 @@ NrSlUeRrc::DoGetPhysicalSlPool(const std::vector<std::bitset<1>>& slBitMap)
             NS_LOG_DEBUG("It is an UL slot :  " << *patternIt << ", but SL bitmap value is "
                                                 << *slBitMapit
                                                 << ", putting 0 in the final bitmap");
-            finalSlPool.push_back(0);
+            finalSlPool.emplace_back(0);
             slBitMapit++;
         }
 
@@ -255,7 +255,7 @@ void
 NrSlUeRrc::DoAddNrSlDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slDrb)
 {
     NS_LOG_FUNCTION(this);
-    NrSlDrbMapPerL2Id::iterator destIt = m_slDrbMap.find(slDrb->m_destinationL2Id);
+    auto destIt = m_slDrbMap.find(slDrb->m_destinationL2Id);
     if (destIt == m_slDrbMap.end())
     {
         NS_LOG_LOGIC("First SL DRB for destination " << slDrb->m_destinationL2Id);
@@ -292,7 +292,7 @@ void
 NrSlUeRrc::DoAddNrSlRxDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slRxDrb)
 {
     NS_LOG_FUNCTION(this);
-    NrSlDrbMapPerL2Id::iterator srcIt = m_slRxDrbMap.find(slRxDrb->m_sourceL2Id);
+    auto srcIt = m_slRxDrbMap.find(slRxDrb->m_sourceL2Id);
     if (srcIt == m_slRxDrbMap.end())
     {
         NS_LOG_LOGIC("First SL RX DRB for remote UE with source L2 id " << slRxDrb->m_sourceL2Id);
@@ -330,7 +330,7 @@ NrSlUeRrc::GetSidelinkDataRadioBearer(uint32_t srcL2Id, uint32_t dstL2Id)
 {
     NS_LOG_FUNCTION(this);
     Ptr<NrSlDataRadioBearerInfo> slrb = nullptr;
-    NrSlDrbMapPerL2Id::iterator destIt = m_slDrbMap.find(dstL2Id);
+    auto destIt = m_slDrbMap.find(dstL2Id);
     NS_ASSERT_MSG(destIt != m_slDrbMap.end(),
                   "Unable to find DRB for destination L2 Id " << dstL2Id);
     NS_LOG_LOGIC("Searching SL DRB " << srcL2Id << " -> " << dstL2Id);
@@ -361,7 +361,7 @@ NrSlUeRrc::DoGetNextLcid(uint32_t dstL2Id)
     // find unused the LCID
     uint8_t lcid = 0; // initialize with invalid value
 
-    NrSlDrbMapPerL2Id::iterator destIt = m_slDrbMap.find(dstL2Id);
+    auto destIt = m_slDrbMap.find(dstL2Id);
     if (destIt == m_slDrbMap.end())
     {
         // first time creating a LC for this destination

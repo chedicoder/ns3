@@ -277,7 +277,7 @@ class MemberLteAsSapUser : public LteAsSapUser
     void NotifyConnectionFailed() override;
     void RecvData(Ptr<Packet> packet) override;
     void NotifyConnectionReleased() override;
-    virtual void NotifyNrSlRadioBearerActivated(uint32_t dstL2Id) override;
+    void NotifyNrSlRadioBearerActivated(uint32_t dstL2Id) override;
 
   private:
     C* m_owner; ///< the owner class

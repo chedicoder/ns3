@@ -149,15 +149,15 @@ class MemberNrSlUeCmacSapProvider : public NrSlUeCmacSapProvider
     MemberNrSlUeCmacSapProvider(C* mac);
 
     // inherited from NrSlUeCmacSapProvider
-    virtual void AddNrSlLc(const SidelinkLogicalChannelInfo& slLcInfo, NrSlMacSapUser* msu);
-    virtual void RemoveNrSlLc(uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id);
-    virtual void ResetNrSlLcMap();
-    virtual void AddNrSlCommTxPool(Ptr<const NrSlCommResourcePool> txPool);
-    virtual void AddNrSlCommRxPool(Ptr<const NrSlCommResourcePool> rxPool);
-    virtual void SetSlProbResoKeep(double prob);
-    virtual void SetSlMaxTxTransNumPssch(uint8_t maxTxPssch);
-    virtual void SetSourceL2Id(uint32_t srcL2Id);
-    virtual void AddNrSlRxDstL2Id(uint32_t dstL2Id);
+    void AddNrSlLc(const SidelinkLogicalChannelInfo& slLcInfo, NrSlMacSapUser* msu) override;
+    void RemoveNrSlLc(uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id) override;
+    void ResetNrSlLcMap() override;
+    void AddNrSlCommTxPool(Ptr<const NrSlCommResourcePool> txPool) override;
+    void AddNrSlCommRxPool(Ptr<const NrSlCommResourcePool> rxPool) override;
+    void SetSlProbResoKeep(double prob) override;
+    void SetSlMaxTxTransNumPssch(uint8_t maxTxPssch) override;
+    void SetSourceL2Id(uint32_t srcL2Id) override;
+    void AddNrSlRxDstL2Id(uint32_t dstL2Id) override;
 
   private:
     C* m_mac; ///< the MAC class
@@ -292,7 +292,7 @@ class MemberNrSlUeCmacSapUser : public NrSlUeCmacSapUser
     MemberNrSlUeCmacSapUser(C* rrc);
 
     // inherited from NrSlUeCmacSapUser
-    virtual void NotifySidelinkReception(uint8_t lcId, uint32_t srcL2Id, uint32_t dstL2Id);
+    void NotifySidelinkReception(uint8_t lcId, uint32_t srcL2Id, uint32_t dstL2Id) override;
 
   private:
     C* m_rrc; ///< the MAC class

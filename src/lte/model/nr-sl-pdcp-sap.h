@@ -169,12 +169,12 @@ class MemberNrSlPdcpSapProvider : public NrSlPdcpSapProvider
      * \param pdcp PDCP
      */
     MemberNrSlPdcpSapProvider(C* pdcp);
+    MemberNrSlPdcpSapProvider() = delete;
 
     // Interface implemented from NrSlPdcpSapProvider
-    virtual void TransmitNrSlPdcpSdu(const NrSlTransmitPdcpSduParameters& params);
+    void TransmitNrSlPdcpSdu(const NrSlTransmitPdcpSduParameters& params) override;
 
   private:
-    MemberNrSlPdcpSapProvider();
     C* m_pdcp; ///< the PDCP
 };
 
@@ -211,12 +211,12 @@ class MemberNrSlPdcpSapUser : public NrSlPdcpSapUser
      * \param rrc RRC
      */
     MemberNrSlPdcpSapUser(C* rrc);
+    MemberNrSlPdcpSapUser() = delete;
 
     // Interface implemented from NrSlPdcpSapUser
-    virtual void ReceiveNrSlPdcpSdu(const NrSlReceivePdcpSduParameters& params);
+    void ReceiveNrSlPdcpSdu(const NrSlReceivePdcpSduParameters& params) override;
 
   private:
-    MemberNrSlPdcpSapUser();
     C* m_rrc; ///< RRC
 };
 

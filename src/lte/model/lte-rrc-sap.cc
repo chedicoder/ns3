@@ -385,7 +385,7 @@ LteRrcSap::GetSlScalingEnum(float slScaling)
     SlScaling slScalingEnum;
     // I need to mask the float value of the scaling factor
     // to have an integral type for the switch statement to work.
-    uint32_t slScalingMask = static_cast<uint32_t>(100 * slScaling);
+    auto slScalingMask = static_cast<uint32_t>(100 * slScaling);
     switch (slScalingMask)
     {
     case 50:

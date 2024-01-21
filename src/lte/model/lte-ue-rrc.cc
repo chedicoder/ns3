@@ -3414,7 +3414,7 @@ void
 LteUeRrc::SetNrSlUeCmacSapProvider(uint8_t bwpId, NrSlUeCmacSapProvider* s)
 {
     NS_LOG_FUNCTION(this);
-    if (m_nrSlUeCmacSapProvider.size() == 0)
+    if (m_nrSlUeCmacSapProvider.empty())
     {
         for (uint16_t n = 0; n < m_numberOfComponentCarriers; n++)
         {
@@ -3435,7 +3435,7 @@ void
 LteUeRrc::SetNrSlUeCphySapProvider(uint8_t bwpId, NrSlUeCphySapProvider* s)
 {
     NS_LOG_FUNCTION(this);
-    if (m_nrSlUeCphySapProvider.size() == 0)
+    if (m_nrSlUeCphySapProvider.empty())
     {
         for (uint16_t n = 0; n < m_numberOfComponentCarriers; n++)
         {
@@ -3625,7 +3625,7 @@ LteUeRrc::SetOutofCovrgUeRnti()
 {
     NS_LOG_FUNCTION(this);
     // preconfigure the RNTI to the IMSI's 16 LSB for uniqueness
-    uint16_t rnti = static_cast<uint16_t>(m_imsi & 0xFFFF);
+    auto rnti = static_cast<uint16_t>(m_imsi & 0xFFFF);
     m_rnti = rnti;
     NS_LOG_DEBUG("Assigning RNTI to an out-of-coverage SL UE " << m_rnti);
     std::set<uint8_t> slBwpIds = m_nrSlRrcSapUser->GetBwpIdContainer();
@@ -3764,7 +3764,7 @@ LteUeRrc::PopulateNrSlPools()
     // For sanity check
     std::set<uint8_t> bwpIds = m_nrSlRrcSapUser->GetBwpIdContainer();
 
-    for (uint8_t index = 0; index < slBwpList.size(); ++index)
+    for (uint32_t index = 0; index < slBwpList.size(); ++index)
     {
         // index of slBwpList is used as BWP id
         // send SL pool to only that BWP for which SlBwpGeneric and SlBwpPoolConfigCommonNr are
@@ -3800,16 +3800,16 @@ LteUeRrc::PopulateNrSlPools()
                                       << sbChSizeInRbs << " RBs");
                     std::vector<std::bitset<1>> physicalPool =
                         m_nrSlRrcSapUser->GetPhysicalSlPool(it.slResourcePool.slTimeResource);
-                    mapPerPool.emplace(std::make_pair(it.slResourcePoolId.id, physicalPool));
+                    mapPerPool.emplace(it.slResourcePoolId.id, physicalPool);
                 }
             }
 
-            NS_ASSERT_MSG(mapPerPool.size() > 0, "No SL pool set for BWP " << +index);
+            NS_ASSERT_MSG(!mapPerPool.empty(), "No SL pool set for BWP " << +index);
 
-            mapPerBwp.emplace(std::make_pair(index, mapPerPool));
+            mapPerBwp.emplace(index, mapPerPool);
         }
 
-        if (mapPerBwp.size() > 0) // we found SL BWP
+        if (!mapPerBwp.empty()) // we found SL BWP
         {
             slPool = CreateObject<NrSlCommResourcePool>();
             // set the slPreconfigFreqInfoList

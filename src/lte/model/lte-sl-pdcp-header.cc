@@ -108,7 +108,7 @@ LteSlPdcpHeader::GetSequenceNumber() const
 }
 
 TypeId
-LteSlPdcpHeader::GetTypeId(void)
+LteSlPdcpHeader::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::LteSlPdcpHeader").SetParent<Header>().AddConstructor<LteSlPdcpHeader>();
@@ -116,7 +116,7 @@ LteSlPdcpHeader::GetTypeId(void)
 }
 
 TypeId
-LteSlPdcpHeader::GetInstanceTypeId(void) const
+LteSlPdcpHeader::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
@@ -131,7 +131,7 @@ LteSlPdcpHeader::Print(std::ostream& os) const
 }
 
 uint32_t
-LteSlPdcpHeader::GetSerializedSize(void) const
+LteSlPdcpHeader::GetSerializedSize() const
 {
     return 5;
 }
