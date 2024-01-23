@@ -108,7 +108,7 @@ spell-check:
   stage: .pre
   image: python:latest
   before_script:
-    - pip install codespell
+    - pip install codespell==2.2.5
   script:
     # Get commit messages
     - if (git remote | grep -qw upstream) ; then
