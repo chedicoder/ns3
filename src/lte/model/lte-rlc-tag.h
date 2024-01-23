@@ -96,7 +96,7 @@ class RlcTag : public Tag
 
   private:
     Time m_senderTimestamp; ///< sender timestamp
-    uint16_t m_txRnti{0};   ///< rnti of transmiting UE
+    uint16_t m_txRnti{0};   ///< rnti of transmitting UE
 };
 
 } // namespace ns3
