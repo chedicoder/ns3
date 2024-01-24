@@ -1,4 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
@@ -19,17 +18,15 @@
 
 #include "nr-sl-ue-bwpm-rrc-sap.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-
-NrSlUeBwpmRrcSapProvider::~NrSlUeBwpmRrcSapProvider ()
+NrSlUeBwpmRrcSapProvider::~NrSlUeBwpmRrcSapProvider()
 {
 }
 
-
-NrSlUeBwpmRrcSapUser::~NrSlUeBwpmRrcSapUser ()
+NrSlUeBwpmRrcSapUser::~NrSlUeBwpmRrcSapUser()
 {
 }
-
 
 } // end of namespace ns3

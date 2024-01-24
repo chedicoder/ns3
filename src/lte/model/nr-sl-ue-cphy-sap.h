@@ -1,4 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
@@ -20,13 +19,14 @@
 #ifndef NR_SL_UE_CPHY_SAP_H
 #define NR_SL_UE_CPHY_SAP_H
 
-#include <stdint.h>
 #include <ns3/ptr.h>
 
+#include <stdint.h>
 
-namespace ns3 {
+namespace ns3
+{
 
-  class NrSlCommResourcePool;
+class NrSlCommResourcePool;
 
 /**
  * \ingroup lte
@@ -39,38 +39,36 @@ namespace ns3 {
  */
 class NrSlUeCphySapProvider
 {
-public:
-  /**
-   * \brief Destructor
-   */
-  virtual ~NrSlUeCphySapProvider ();
+  public:
+    /**
+     * \brief Destructor
+     */
+    virtual ~NrSlUeCphySapProvider();
 
-  //Sidelink Communication
-  /**
-   * \brief Add NR Sidelink communication transmission pool
-   *
-   * Adds transmission pool for NR Sidelink communication
-   *
-   * \param txPool The pointer to the NrSlCommResourcePool
-   */
-  virtual void AddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool) = 0;
-  /**
-   * \brief Add NR Sidelink communication reception pool
-   *
-   * Adds reception pool for NR Sidelink communication
-   *
-   * \param rxPool The pointer to the NrSlCommResourcePool
-   */
-  virtual void AddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool) = 0;
-  /**
-   * \brief Ask the PHY the bandwidth in RBs
-   *
-   * \return the bandwidth in RBs
-   */
-  virtual uint32_t GetBwInRbs () const = 0;
-
+    // Sidelink Communication
+    /**
+     * \brief Add NR Sidelink communication transmission pool
+     *
+     * Adds transmission pool for NR Sidelink communication
+     *
+     * \param txPool The pointer to the NrSlCommResourcePool
+     */
+    virtual void AddNrSlCommTxPool(Ptr<const NrSlCommResourcePool> txPool) = 0;
+    /**
+     * \brief Add NR Sidelink communication reception pool
+     *
+     * Adds reception pool for NR Sidelink communication
+     *
+     * \param rxPool The pointer to the NrSlCommResourcePool
+     */
+    virtual void AddNrSlCommRxPool(Ptr<const NrSlCommResourcePool> rxPool) = 0;
+    /**
+     * \brief Ask the PHY the bandwidth in RBs
+     *
+     * \return the bandwidth in RBs
+     */
+    virtual uint32_t GetBwInRbs() const = 0;
 };
-
 
 /**
  * \ingroup lte
@@ -80,19 +78,15 @@ public:
  *
  * This is the CPHY SAP User, i.e., the part of the SAP that contains the RRC
  * methods called by the PHY
-*/
+ */
 class NrSlUeCphySapUser
 {
-public:
-  /**
-   * \brief Destructor
-   */
-  virtual ~NrSlUeCphySapUser ();
-
+  public:
+    /**
+     * \brief Destructor
+     */
+    virtual ~NrSlUeCphySapUser();
 };
-
-
-
 
 /**
  * \ingroup lte
@@ -107,54 +101,53 @@ public:
 template <class C>
 class MemberNrSlUeCphySapProvider : public NrSlUeCphySapProvider
 {
-public:
-  /**
-   * \brief Constructor
-   *
-   * \param owner The owner class
-   */
-  MemberNrSlUeCphySapProvider (C* owner);
+  public:
+    /**
+     * \brief Constructor
+     *
+     * \param owner The owner class
+     */
+    MemberNrSlUeCphySapProvider(C* owner);
+    MemberNrSlUeCphySapProvider() = delete;
 
-  // methods inherited from NrSlUeCphySapProvider go here
-  //NR Sidelink communication
-  virtual void AddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool);
-  virtual void AddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool);
-  virtual uint32_t GetBwInRbs () const;
+    // methods inherited from NrSlUeCphySapProvider go here
+    // NR Sidelink communication
+    void AddNrSlCommTxPool(Ptr<const NrSlCommResourcePool> txPool) override;
+    void AddNrSlCommRxPool(Ptr<const NrSlCommResourcePool> rxPool) override;
+    uint32_t GetBwInRbs() const override;
 
-private:
-  MemberNrSlUeCphySapProvider ();
-  C* m_owner; ///< the owner class
+  private:
+    C* m_owner; ///< the owner class
 };
 
 template <class C>
-MemberNrSlUeCphySapProvider<C>::MemberNrSlUeCphySapProvider (C* owner)
-  : m_owner (owner)
+MemberNrSlUeCphySapProvider<C>::MemberNrSlUeCphySapProvider(C* owner)
+    : m_owner(owner)
 {
 }
 
-//Sidelink communication
+// Sidelink communication
 
 template <class C>
 void
-MemberNrSlUeCphySapProvider<C>::AddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool)
+MemberNrSlUeCphySapProvider<C>::AddNrSlCommTxPool(Ptr<const NrSlCommResourcePool> txPool)
 {
-  m_owner->DoAddNrSlCommTxPool (txPool);
+    m_owner->DoAddNrSlCommTxPool(txPool);
 }
 
 template <class C>
 void
-MemberNrSlUeCphySapProvider<C>::AddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
+MemberNrSlUeCphySapProvider<C>::AddNrSlCommRxPool(Ptr<const NrSlCommResourcePool> rxPool)
 {
-  m_owner->DoAddNrSlCommRxPool (rxPool);
+    m_owner->DoAddNrSlCommRxPool(rxPool);
 }
 
 template <class C>
 uint32_t
-MemberNrSlUeCphySapProvider<C>::GetBwInRbs () const
+MemberNrSlUeCphySapProvider<C>::GetBwInRbs() const
 {
-  return m_owner->DoGetBwInRbs ();
+    return m_owner->DoGetBwInRbs();
 }
-
 
 /**
  * \ingroup lte
@@ -169,29 +162,26 @@ MemberNrSlUeCphySapProvider<C>::GetBwInRbs () const
 template <class C>
 class MemberNrSlUeCphySapUser : public NrSlUeCphySapUser
 {
-public:
-  /**
-   * \brief Constructor
-   *
-   * \param owner The owner class
-   */
-  MemberNrSlUeCphySapUser (C* owner);
+  public:
+    /**
+     * \brief Constructor
+     *
+     * \param owner The owner class
+     */
+    MemberNrSlUeCphySapUser(C* owner);
 
-  // methods inherited from NrSlUeCphySapUser go here
+    // methods inherited from NrSlUeCphySapUser go here
 
-private:
-  C* m_owner; ///< the owner class
+  private:
+    C* m_owner; ///< the owner class
 };
 
 template <class C>
-MemberNrSlUeCphySapUser<C>::MemberNrSlUeCphySapUser (C* owner)
-  : m_owner (owner)
+MemberNrSlUeCphySapUser<C>::MemberNrSlUeCphySapUser(C* owner)
+    : m_owner(owner)
 {
 }
 
-
-
 } // namespace ns3
-
 
 #endif // NR_SL_UE_CPHY_SAP_H

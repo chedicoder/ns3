@@ -153,6 +153,7 @@ Derived classes must implement the following functions:
 The class PhasedArrayModel also assumes that all antenna elements are equal, a typical key assumption which allows to model the PAA field pattern as the sum of the array factor, given by the geometry of the location of the antenna elements, and the element field pattern.
 Any class derived from AntennaModel is a valid antenna element for the PhasedArrayModel, allowing for a great flexibility of the framework.
 
+.. _3gpp-antenna-model:
 
 UniformPlanarArray
 ++++++++++++++++++
@@ -170,7 +171,7 @@ The slant angle is instead fixed and assumed to be 0.
 The number of antenna elements in the vertical and horizontal directions can be configured
 through the attributes "NumRows" and "NumColumns", while the spacing between the horizontal
 and vertical elements can be configured through the attributes "AntennaHorizontalSpacing"
-and "AntennaVerticalSpacing". 
+and "AntennaVerticalSpacing".
 
 The polarization of each antenna element in the array is determined by the polarization
 slant angle through the attribute "PolSlantAngle", as described in [38901]_ (i.e., :math:`{\zeta}`).

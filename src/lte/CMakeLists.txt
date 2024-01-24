@@ -357,6 +357,7 @@ set(test_sources
     test/test-lte-antenna.cc
     test/test-lte-epc-e2e-data.cc
     test/test-lte-handover-delay.cc
+    test/test-lte-handover-failure.cc
     test/test-lte-handover-target.cc
     test/test-lte-rlc-header.cc
     test/test-lte-rrc.cc
@@ -380,6 +381,7 @@ build_lib(
     ${libapplications}
     ${libinternet}
     ${libcsma}
+    ${libconfig-store}
   TEST_SOURCES ${test_sources}
   MODULE_ENABLED_FEATURES ${emu_features}
 )

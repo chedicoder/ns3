@@ -1,4 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
@@ -20,9 +19,10 @@
 #ifndef NR_SL_RRC_SAP_H
 #define NR_SL_RRC_SAP_H
 
-#include<ns3/lte-rrc-sap.h>
+#include "lte-rrc-sap.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 class NrSlDataRadioBearerInfo;
 
@@ -40,64 +40,64 @@ class NrSlDataRadioBearerInfo;
  */
 class NrSlUeRrcSapUser
 {
-public:
-  /**
-   * \brief Destructor
-   */
-  virtual ~NrSlUeRrcSapUser ();
-  /**
-   * \brief Get NR sidelink preconfiguration
-   *
-   * \return The sidelink preconfiguration
-   */
-  virtual const LteRrcSap::SidelinkPreconfigNr GetNrSlPreconfiguration () = 0;
-  /**
-   * \brief Get the physical sidelink pool based on SL bitmap and the TDD pattern
-   *
-   * \param slBitMap The sidelink bitmap
-   * \return A vector representing the physical sidelink pool
-   */
-  virtual const std::vector <std::bitset<1>>
-  GetPhysicalSlPool (const std::vector <std::bitset<1>> &slBitMap) = 0;
-  /**
-   * \brief Get Bwp Id Container
-   *
-   * \return The container of SL BWP ids
-   */
-  virtual const std::set<uint8_t> GetBwpIdContainer () = 0;
-  /**
-   * \brief Add NR sidelink data radio bearer
-   *
-   * Attempts to add a sidelink radio bearer
-   *
-   * \param slDrb LteSidelinkRadioBearerInfo pointer
-   */
-  virtual void AddNrSlDataRadioBearer (Ptr<NrSlDataRadioBearerInfo> slDrb) = 0;
-  /**
-   * \brief Add NR Reception sidelink data radio bearer
-   *
-   * Attempts to add a sidelink radio bearer for RX
-   *
-   * \param slRxDrb LteSidelinkRadioBearerInfo pointer
-   */
-  virtual void AddNrSlRxDataRadioBearer (Ptr<NrSlDataRadioBearerInfo> slRxDrb) = 0;
-  /**
-   * \brief Get NR Sidelink data radio bearer
-   *
-   * \param dstL2Id The remote/destination layer 2 id
-   * \return The NrSlDataRadioBearerInfo
-   */
-  virtual Ptr<NrSlDataRadioBearerInfo> GetSidelinkDataRadioBearer (uint32_t dstL2Id) = 0;
-  /**
-   * \brief Get next LCID for setting up NR SL DRB towards the given destination
-   *
-   * As per, table 6.2.4-1 of 38.321 LCID for SL-SCH range from 4-19, i.e.,
-   * total 16 LCIDs
-   *
-   * \param dstL2Id The destination layer 2 ID
-   * \return the next available NR SL DRB LCID
-   */
-  virtual uint8_t GetNextLcid (uint32_t dstL2Id) = 0;
+  public:
+    /**
+     * \brief Destructor
+     */
+    virtual ~NrSlUeRrcSapUser();
+    /**
+     * \brief Get NR sidelink preconfiguration
+     *
+     * \return The sidelink preconfiguration
+     */
+    virtual const LteRrcSap::SidelinkPreconfigNr GetNrSlPreconfiguration() = 0;
+    /**
+     * \brief Get the physical sidelink pool based on SL bitmap and the TDD pattern
+     *
+     * \param slBitMap The sidelink bitmap
+     * \return A vector representing the physical sidelink pool
+     */
+    virtual const std::vector<std::bitset<1>> GetPhysicalSlPool(
+        const std::vector<std::bitset<1>>& slBitMap) = 0;
+    /**
+     * \brief Get Bwp Id Container
+     *
+     * \return The container of SL BWP ids
+     */
+    virtual const std::set<uint8_t> GetBwpIdContainer() = 0;
+    /**
+     * \brief Add NR sidelink data radio bearer
+     *
+     * Attempts to add a sidelink radio bearer
+     *
+     * \param slDrb LteSidelinkRadioBearerInfo pointer
+     */
+    virtual void AddNrSlDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slDrb) = 0;
+    /**
+     * \brief Add NR Reception sidelink data radio bearer
+     *
+     * Attempts to add a sidelink radio bearer for RX
+     *
+     * \param slRxDrb LteSidelinkRadioBearerInfo pointer
+     */
+    virtual void AddNrSlRxDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slRxDrb) = 0;
+    /**
+     * \brief Get NR Sidelink data radio bearer
+     *
+     * \param dstL2Id The remote/destination layer 2 id
+     * \return The NrSlDataRadioBearerInfo
+     */
+    virtual Ptr<NrSlDataRadioBearerInfo> GetSidelinkDataRadioBearer(uint32_t dstL2Id) = 0;
+    /**
+     * \brief Get next LCID for setting up NR SL DRB towards the given destination
+     *
+     * As per, table 6.2.4-1 of 38.321 LCID for SL-SCH range from 4-19, i.e.,
+     * total 16 LCIDs
+     *
+     * \param dstL2Id The destination layer 2 ID
+     * \return the next available NR SL DRB LCID
+     */
+    virtual uint8_t GetNextLcid(uint32_t dstL2Id) = 0;
 };
 
 /**
@@ -113,34 +113,31 @@ public:
  */
 class NrSlUeRrcSapProvider
 {
-public:
-  /**
-   * \brief Destructor
-   */
-  virtual ~NrSlUeRrcSapProvider ();
-  /**
-   * \brief Populate NR Sidelink pools
-   *
-   * After getting the pre-configuration
-   * NrSlUeRrc instruct the LteUeRrc to
-   * populate the pools.
-   *
-   */
-  virtual void PopulatePools () = 0 ;
-  /**
-   * \brief Set Sidelink source layer 2 id
-   *
-   * \param srcL2Id The Sidelink layer 2 id of the source
-   */
-  virtual void SetSourceL2Id (uint32_t srcL2Id) = 0;
-
-
+  public:
+    /**
+     * \brief Destructor
+     */
+    virtual ~NrSlUeRrcSapProvider();
+    /**
+     * \brief Populate NR Sidelink pools
+     *
+     * After getting the pre-configuration
+     * NrSlUeRrc instruct the LteUeRrc to
+     * populate the pools.
+     *
+     */
+    virtual void PopulatePools() = 0;
+    /**
+     * \brief Set Sidelink source layer 2 id
+     *
+     * \param srcL2Id The Sidelink layer 2 id of the source
+     */
+    virtual void SetSourceL2Id(uint32_t srcL2Id) = 0;
 };
 
 ////////////////////////////////////
 //   templates UE RRC side
 ////////////////////////////////////
-
 
 /**
  * Template for the implementation of the NrSlUeRrcSapUser as a member
@@ -150,92 +147,88 @@ public:
 template <class C>
 class MemberNrSlUeRrcSapUser : public NrSlUeRrcSapUser
 {
-public:
-  /**
-   * Constructor
-   *
-   * \param owner the owner class
-   */
-  MemberNrSlUeRrcSapUser (C* owner);
+  public:
+    /**
+     * Constructor
+     *
+     * \param owner the owner class
+     */
+    MemberNrSlUeRrcSapUser(C* owner);
 
-  // inherited from NRSlUeRrcSapUser
-  virtual const LteRrcSap::SidelinkPreconfigNr GetNrSlPreconfiguration ();
-  virtual const std::vector <std::bitset<1>>
-  GetPhysicalSlPool (const std::vector <std::bitset<1>> &slBitMap);
-  virtual const std::set<uint8_t> GetBwpIdContainer ();
-  virtual void AddNrSlDataRadioBearer (Ptr<NrSlDataRadioBearerInfo> slDrb);
-  virtual void AddNrSlRxDataRadioBearer (Ptr<NrSlDataRadioBearerInfo> slRxDrb);
-  virtual Ptr<NrSlDataRadioBearerInfo> GetSidelinkDataRadioBearer (uint32_t dstL2Id);
-  virtual uint8_t GetNextLcid (uint32_t dstL2Id);
+    // inherited from NRSlUeRrcSapUser
+    const LteRrcSap::SidelinkPreconfigNr GetNrSlPreconfiguration() override;
+    const std::vector<std::bitset<1>> GetPhysicalSlPool(
+        const std::vector<std::bitset<1>>& slBitMap) override;
+    const std::set<uint8_t> GetBwpIdContainer() override;
+    void AddNrSlDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slDrb) override;
+    void AddNrSlRxDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slRxDrb) override;
+    Ptr<NrSlDataRadioBearerInfo> GetSidelinkDataRadioBearer(uint32_t dstL2Id) override;
+    uint8_t GetNextLcid(uint32_t dstL2Id) override;
 
-
-private:
-  MemberNrSlUeRrcSapUser ();
-  C* m_owner; ///< the owner class
+  private:
+    MemberNrSlUeRrcSapUser();
+    C* m_owner; ///< the owner class
 };
 
 template <class C>
-MemberNrSlUeRrcSapUser<C>::MemberNrSlUeRrcSapUser (C* owner)
-  : m_owner (owner)
+MemberNrSlUeRrcSapUser<C>::MemberNrSlUeRrcSapUser(C* owner)
+    : m_owner(owner)
 {
 }
 
 template <class C>
-MemberNrSlUeRrcSapUser<C>::MemberNrSlUeRrcSapUser ()
+MemberNrSlUeRrcSapUser<C>::MemberNrSlUeRrcSapUser()
 {
 }
-
 
 template <class C>
 const LteRrcSap::SidelinkPreconfigNr
-MemberNrSlUeRrcSapUser<C>::GetNrSlPreconfiguration ()
+MemberNrSlUeRrcSapUser<C>::GetNrSlPreconfiguration()
 {
-  return m_owner->DoGetNrSlPreconfiguration ();
+    return m_owner->DoGetNrSlPreconfiguration();
 }
 
 template <class C>
-const std::vector <std::bitset<1>>
-MemberNrSlUeRrcSapUser<C>::GetPhysicalSlPool (const std::vector <std::bitset<1>> &slBitMap)
+const std::vector<std::bitset<1>>
+MemberNrSlUeRrcSapUser<C>::GetPhysicalSlPool(const std::vector<std::bitset<1>>& slBitMap)
 {
-  return m_owner->DoGetPhysicalSlPool (slBitMap);
+    return m_owner->DoGetPhysicalSlPool(slBitMap);
 }
 
 template <class C>
 const std::set<uint8_t>
-MemberNrSlUeRrcSapUser<C>::GetBwpIdContainer ()
+MemberNrSlUeRrcSapUser<C>::GetBwpIdContainer()
 {
-  return m_owner->DoGetBwpIdContainer ();
+    return m_owner->DoGetBwpIdContainer();
 }
 
 template <class C>
 void
-MemberNrSlUeRrcSapUser<C>::AddNrSlDataRadioBearer (Ptr<NrSlDataRadioBearerInfo> slDrb)
+MemberNrSlUeRrcSapUser<C>::AddNrSlDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slDrb)
 {
-  m_owner->DoAddNrSlDataRadioBearer (slDrb);
+    m_owner->DoAddNrSlDataRadioBearer(slDrb);
 }
 
 template <class C>
 void
-MemberNrSlUeRrcSapUser<C>::AddNrSlRxDataRadioBearer (Ptr<NrSlDataRadioBearerInfo> slRxDrb)
+MemberNrSlUeRrcSapUser<C>::AddNrSlRxDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slRxDrb)
 {
-  m_owner->DoAddNrSlRxDataRadioBearer (slRxDrb);
+    m_owner->DoAddNrSlRxDataRadioBearer(slRxDrb);
 }
-
 
 template <class C>
 Ptr<NrSlDataRadioBearerInfo>
-MemberNrSlUeRrcSapUser<C>::GetSidelinkDataRadioBearer (uint32_t dstL2Id)
+MemberNrSlUeRrcSapUser<C>::GetSidelinkDataRadioBearer(uint32_t dstL2Id)
 {
-  return m_owner->DoGetSidelinkDataRadioBearer (dstL2Id);
+    return m_owner->DoGetSidelinkDataRadioBearer(dstL2Id);
 }
 
 template <class C>
 uint8_t
-MemberNrSlUeRrcSapUser<C>::GetNextLcid (uint32_t dstL2Id)
+MemberNrSlUeRrcSapUser<C>::GetNextLcid(uint32_t dstL2Id)
 {
-  return m_owner->DoGetNextLcid (dstL2Id);
+    return m_owner->DoGetNextLcid(dstL2Id);
 }
-
 
 /**
  * Template for the implementation of the NrSlUeRrcSapProvider as a member
@@ -245,56 +238,49 @@ MemberNrSlUeRrcSapUser<C>::GetNextLcid (uint32_t dstL2Id)
 template <class C>
 class MemberNrSlUeRrcSapProvider : public NrSlUeRrcSapProvider
 {
-public:
-  /**
-   * Constructor
-   *
-   * \param owner the owner class
-   */
-  MemberNrSlUeRrcSapProvider (C* owner);
+  public:
+    /**
+     * Constructor
+     *
+     * \param owner the owner class
+     */
+    MemberNrSlUeRrcSapProvider(C* owner);
 
-  // inherited from NRSlUeRrcSapProvider
-  virtual void PopulatePools ();
-  virtual void SetSourceL2Id (uint32_t srcL2Id);
+    // inherited from NRSlUeRrcSapProvider
+    void PopulatePools() override;
+    void SetSourceL2Id(uint32_t srcL2Id) override;
 
-
-private:
-  MemberNrSlUeRrcSapProvider ();
-  C* m_owner; ///< the owner class
+  private:
+    MemberNrSlUeRrcSapProvider();
+    C* m_owner; ///< the owner class
 };
 
 template <class C>
-MemberNrSlUeRrcSapProvider<C>::MemberNrSlUeRrcSapProvider (C* owner)
-  : m_owner (owner)
+MemberNrSlUeRrcSapProvider<C>::MemberNrSlUeRrcSapProvider(C* owner)
+    : m_owner(owner)
 {
 }
 
 template <class C>
-MemberNrSlUeRrcSapProvider<C>::MemberNrSlUeRrcSapProvider ()
+MemberNrSlUeRrcSapProvider<C>::MemberNrSlUeRrcSapProvider()
 {
-}
-
-
-template <class C>
-void
-MemberNrSlUeRrcSapProvider<C>::PopulatePools ()
-{
-  m_owner->DoPopulatePools ();
 }
 
 template <class C>
 void
-MemberNrSlUeRrcSapProvider<C>::SetSourceL2Id (uint32_t srsL2Id)
+MemberNrSlUeRrcSapProvider<C>::PopulatePools()
 {
-  m_owner->DoSetSourceL2Id (srsL2Id);
+    m_owner->DoPopulatePools();
 }
 
+template <class C>
+void
+MemberNrSlUeRrcSapProvider<C>::SetSourceL2Id(uint32_t srsL2Id)
+{
+    m_owner->DoSetSourceL2Id(srsL2Id);
+}
 
-
-
-//eNB side SAPs
-
-
+// eNB side SAPs
 
 /**
  * \brief User part of the Service Access Point (SAP) between eNB RRC and NR
@@ -302,13 +288,11 @@ MemberNrSlUeRrcSapProvider<C>::SetSourceL2Id (uint32_t srsL2Id)
  */
 class NrSlEnbRrcSapUser
 {
-public:
-  /**
-   * \brief Destructor
-   */
-  virtual ~NrSlEnbRrcSapUser ();
-
-
+  public:
+    /**
+     * \brief Destructor
+     */
+    virtual ~NrSlEnbRrcSapUser();
 };
 
 /**
@@ -317,20 +301,16 @@ public:
  */
 class NrSlEnbRrcSapProvider
 {
-public:
-  /**
-   * \brief Destructor
-   */
-  virtual ~NrSlEnbRrcSapProvider ();
-
-
+  public:
+    /**
+     * \brief Destructor
+     */
+    virtual ~NrSlEnbRrcSapProvider();
 };
-
 
 ////////////////////////////////////
 //   templates eNB RRC side
 ////////////////////////////////////
-
 
 /**
  * Template for the implementation of the NrSlEnbRrcSapUser as a member
@@ -340,31 +320,30 @@ public:
 template <class C>
 class MemberNrSlEnbRrcSapUser : public NrSlEnbRrcSapUser
 {
-public:
-  /**
-   * Constructor
-   *
-   * \param owner the owner class
-   */
-  MemberNrSlEnbRrcSapUser (C* owner);
+  public:
+    /**
+     * Constructor
+     *
+     * \param owner the owner class
+     */
+    MemberNrSlEnbRrcSapUser(C* owner);
 
-  // inherited from NRSlUeRrcSapUser
-//  virtual void Setup (SetupParameters params);
+    // inherited from NRSlUeRrcSapUser
+    //  virtual void Setup (SetupParameters params);
 
-
-private:
-  MemberNrSlEnbRrcSapUser ();
-  C* m_owner; ///< the owner class
+  private:
+    MemberNrSlEnbRrcSapUser();
+    C* m_owner; ///< the owner class
 };
 
 template <class C>
-MemberNrSlEnbRrcSapUser<C>::MemberNrSlEnbRrcSapUser (C* owner)
-  : m_owner (owner)
+MemberNrSlEnbRrcSapUser<C>::MemberNrSlEnbRrcSapUser(C* owner)
+    : m_owner(owner)
 {
 }
 
 template <class C>
-MemberNrSlEnbRrcSapUser<C>::MemberNrSlEnbRrcSapUser ()
+MemberNrSlEnbRrcSapUser<C>::MemberNrSlEnbRrcSapUser()
 {
 }
 
@@ -377,7 +356,6 @@ MemberNrSlEnbRrcSapUser<C>::Setup (SetupParameters params)
 }
 */
 
-
 /**
  * Template for the implementation of the NrSlEnbRrcSapProvider as a member
  * of an owner class of type C to which all methods are forwarded
@@ -386,31 +364,30 @@ MemberNrSlEnbRrcSapUser<C>::Setup (SetupParameters params)
 template <class C>
 class MemberNrSlEnbRrcSapProvider : public NrSlEnbRrcSapProvider
 {
-public:
-  /**
-   * Constructor
-   *
-   * \param owner the owner class
-   */
-  MemberNrSlEnbRrcSapProvider (C* owner);
+  public:
+    /**
+     * Constructor
+     *
+     * \param owner the owner class
+     */
+    MemberNrSlEnbRrcSapProvider(C* owner);
 
-  // inherited from NRSlUeRrcSapUser
-//  virtual void Setup (SetupParameters params);
+    // inherited from NRSlUeRrcSapUser
+    //  virtual void Setup (SetupParameters params);
 
-
-private:
-  MemberNrSlEnbRrcSapProvider ();
-  C* m_owner; ///< the owner class
+  private:
+    MemberNrSlEnbRrcSapProvider();
+    C* m_owner; ///< the owner class
 };
 
 template <class C>
-MemberNrSlEnbRrcSapProvider<C>::MemberNrSlEnbRrcSapProvider (C* owner)
-  : m_owner (owner)
+MemberNrSlEnbRrcSapProvider<C>::MemberNrSlEnbRrcSapProvider(C* owner)
+    : m_owner(owner)
 {
 }
 
 template <class C>
-MemberNrSlEnbRrcSapProvider<C>::MemberNrSlEnbRrcSapProvider ()
+MemberNrSlEnbRrcSapProvider<C>::MemberNrSlEnbRrcSapProvider()
 {
 }
 
@@ -423,8 +400,6 @@ MemberNrSlEnbRrcSapProvider<C>::Setup (SetupParameters params)
 }
 */
 
-
-
-}
+} // namespace ns3
 
 #endif /* NR_SL_RRC_SAP_H */

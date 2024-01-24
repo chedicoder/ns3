@@ -24,12 +24,15 @@ testpy-output
 
 bindings/python/pybindgen/
 
+venv/
+
 ms_print.*
 massif.*
 coverity
 TAGS
 
 .lock-ns3_*
+.ns3rc
 
 build-dir/
 build/
@@ -45,7 +48,9 @@ cmake-build-debug/
 cmake-build-relwithdebinfo/
 cmake-build-minsizerel/
 cmake-build-release/
+vcpkg/
 
-.vscode/*
-!.vscode/launch.json
-!.vscode/tasks.json
+.vs/
+
+# Ignore local cache used by e.g. clangd
+.cache/

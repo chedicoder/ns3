@@ -39,7 +39,6 @@ build_lib(
   LIBRARIES_TO_LINK
     ${libnetwork}
     ${libcore}
-    ${libconfig-store}
   TEST_SOURCES
     test/adaptive-red-queue-disc-test-suite.cc
     test/cobalt-queue-disc-test-suite.cc

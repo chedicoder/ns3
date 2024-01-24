@@ -1,4 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
@@ -22,7 +21,8 @@
 
 #include "ns3/packet.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup lte
@@ -35,51 +35,54 @@ namespace ns3 {
  */
 class NrSlRlcSapProvider
 {
-public:
-  virtual ~NrSlRlcSapProvider ();
+  public:
+    virtual ~NrSlRlcSapProvider();
 
-  /**
-   * \brief Parameters for NrSlRlcSapProvider::TransmitNrSlPdcpPdu
-   */
-  struct NrSlTransmitPdcpPduParameters
-  {
     /**
-     * \brief NrSlTransmitPdcpPduParameters constructor
-     *
-     * \param pdu The PDCP PDU
-     * \param rnti The C-RNTI identifying the UE
-     * \param lcId The logical channel id corresponding to the sending RLC instance
-     * \param srcL2Id Source L2 ID (24 bits)
-     * \param dstL2Id Destination L2 ID (24 bits)
+     * \brief Parameters for NrSlRlcSapProvider::TransmitNrSlPdcpPdu
      */
-    NrSlTransmitPdcpPduParameters (Ptr<Packet> pdu, uint16_t rnti, uint8_t lcId,
-                                   uint32_t srcL2Id,  uint32_t dstL2Id)
+    struct NrSlTransmitPdcpPduParameters
     {
-      this->pdcpPdu = pdu;
-      this->rnti = rnti;
-      this->lcid = lcId;
-      this->srcL2Id = srcL2Id;
-      this->dstL2Id = dstL2Id;
-    }
+        /**
+         * \brief NrSlTransmitPdcpPduParameters constructor
+         *
+         * \param pdu The PDCP PDU
+         * \param rnti The C-RNTI identifying the UE
+         * \param lcId The logical channel id corresponding to the sending RLC instance
+         * \param srcL2Id Source L2 ID (24 bits)
+         * \param dstL2Id Destination L2 ID (24 bits)
+         */
+        NrSlTransmitPdcpPduParameters(Ptr<Packet> pdu,
+                                      uint16_t rnti,
+                                      uint8_t lcId,
+                                      uint32_t srcL2Id,
+                                      uint32_t dstL2Id)
+        {
+            this->pdcpPdu = pdu;
+            this->rnti = rnti;
+            this->lcid = lcId;
+            this->srcL2Id = srcL2Id;
+            this->dstL2Id = dstL2Id;
+        }
 
-    Ptr<Packet> pdcpPdu;  //!< the PDCP PDU
-    uint16_t    rnti {std::numeric_limits <uint16_t>::max ()}; //!< the C-RNTI identifying the UE
-    uint8_t     lcid {std::numeric_limits <uint8_t>::max ()}; //!< the logical channel id corresponding to the sending RLC instance
-    uint32_t    srcL2Id {0};  //!< Source L2 ID (24 bits)
-    uint32_t    dstL2Id {0};  //!< Destination L2 ID (24 bits)
-  };
+        Ptr<Packet> pdcpPdu;                                 //!< the PDCP PDU
+        uint16_t rnti{std::numeric_limits<uint16_t>::max()}; //!< the C-RNTI identifying the UE
+        uint8_t lcid{std::numeric_limits<uint8_t>::max()}; //!< the logical channel id corresponding
+                                                           //!< to the sending RLC instance
+        uint32_t srcL2Id{0};                               //!< Source L2 ID (24 bits)
+        uint32_t dstL2Id{0};                               //!< Destination L2 ID (24 bits)
+    };
 
-  /**
-   * \brief Send a NR Sidelink PDCP PDU to the RLC for transmission
-   *
-   * This method is to be called when upper PDCP entity has a NR Sidelink PDCP
-   * PDU ready to send
-   *
-   * \param params the NrSlTransmitPdcpPduParameters
-   */
-  virtual void TransmitNrSlPdcpPdu (const NrSlTransmitPdcpPduParameters &params) = 0;
+    /**
+     * \brief Send a NR Sidelink PDCP PDU to the RLC for transmission
+     *
+     * This method is to be called when upper PDCP entity has a NR Sidelink PDCP
+     * PDU ready to send
+     *
+     * \param params the NrSlTransmitPdcpPduParameters
+     */
+    virtual void TransmitNrSlPdcpPdu(const NrSlTransmitPdcpPduParameters& params) = 0;
 };
-
 
 /**
  * \ingroup lte
@@ -93,18 +96,17 @@ public:
  */
 class NrSlRlcSapUser
 {
-public:
-  virtual ~NrSlRlcSapUser ();
+  public:
+    virtual ~NrSlRlcSapUser();
 
- /**
-  * \brief Called by the RLC entity to notify the PDCP entity of the reception
-  * of a new NR sidelink PDCP PDU
-  *
-  * \param p the PDCP PDU
-  */
-  virtual void ReceiveNrSlPdcpPdu (Ptr<Packet> p) = 0;
+    /**
+     * \brief Called by the RLC entity to notify the PDCP entity of the reception
+     * of a new NR sidelink PDCP PDU
+     *
+     * \param p the PDCP PDU
+     */
+    virtual void ReceiveNrSlPdcpPdu(Ptr<Packet> p) = 0;
 };
-
 
 /**
  * \ingroup lte
@@ -119,38 +121,37 @@ public:
 template <class C>
 class MemberNrSlRlcSapProvider : public NrSlRlcSapProvider
 {
-public:
-  /**
-   * Constructor
-   *
-   * \param rlc the RLC
-   */
-  MemberNrSlRlcSapProvider (C* rlc);
+  public:
+    /**
+     * Constructor
+     *
+     * \param rlc the RLC
+     */
+    MemberNrSlRlcSapProvider(C* rlc);
+    MemberNrSlRlcSapProvider() = delete;
 
-  /**
-   * Interface implemented from NrSlRlcSapProvider
-   * \param params the NrSlTransmitPdcpPduParameters
-   */
-  virtual void TransmitNrSlPdcpPdu (const NrSlTransmitPdcpPduParameters &params);
+    /**
+     * Interface implemented from NrSlRlcSapProvider
+     * \param params the NrSlTransmitPdcpPduParameters
+     */
+    void TransmitNrSlPdcpPdu(const NrSlTransmitPdcpPduParameters& params) override;
 
-private:
-  MemberNrSlRlcSapProvider ();
-  C* m_rlc; //!< the RLC
+  private:
+    C* m_rlc; //!< the RLC
 };
 
 template <class C>
-MemberNrSlRlcSapProvider<C>::MemberNrSlRlcSapProvider (C* rlc)
-  : m_rlc (rlc)
+MemberNrSlRlcSapProvider<C>::MemberNrSlRlcSapProvider(C* rlc)
+    : m_rlc(rlc)
 {
 }
-
 
 template <class C>
-void MemberNrSlRlcSapProvider<C>::TransmitNrSlPdcpPdu (const NrSlTransmitPdcpPduParameters &params)
+void
+MemberNrSlRlcSapProvider<C>::TransmitNrSlPdcpPdu(const NrSlTransmitPdcpPduParameters& params)
 {
-  m_rlc->DoTransmitNrSlPdcpPdu (params);
+    m_rlc->DoTransmitNrSlPdcpPdu(params);
 }
-
 
 /**
  * \ingroup lte
@@ -165,34 +166,34 @@ void MemberNrSlRlcSapProvider<C>::TransmitNrSlPdcpPdu (const NrSlTransmitPdcpPdu
 template <class C>
 class MemberNrSlRlcSapUser : public NrSlRlcSapUser
 {
-public:
-  /**
-   * \brief Constructor
-   *
-   * \param pdcp the PDCP
-   */
-  MemberNrSlRlcSapUser (C* pdcp);
+  public:
+    /**
+     * \brief Constructor
+     *
+     * \param pdcp the PDCP
+     */
+    MemberNrSlRlcSapUser(C* pdcp);
+    MemberNrSlRlcSapUser() = delete;
 
-  // Interface implemented from NrSlRlcSapUser
-  virtual void ReceiveNrSlPdcpPdu (Ptr<Packet> p);
+    // Interface implemented from NrSlRlcSapUser
+    void ReceiveNrSlPdcpPdu(Ptr<Packet> p) override;
 
-private:
-  MemberNrSlRlcSapUser ();
-  C* m_pdcp; //!< the PDCP
+  private:
+    C* m_pdcp; //!< the PDCP
 };
 
 template <class C>
-MemberNrSlRlcSapUser<C>::MemberNrSlRlcSapUser (C* pdcp)
-  : m_pdcp (pdcp)
+MemberNrSlRlcSapUser<C>::MemberNrSlRlcSapUser(C* pdcp)
+    : m_pdcp(pdcp)
 {
 }
 
 template <class C>
-void MemberNrSlRlcSapUser<C>::ReceiveNrSlPdcpPdu (Ptr<Packet> p)
+void
+MemberNrSlRlcSapUser<C>::ReceiveNrSlPdcpPdu(Ptr<Packet> p)
 {
-  m_pdcp->DoReceiveNrSlPdcpPdu (p);
+    m_pdcp->DoReceiveNrSlPdcpPdu(p);
 }
-
 
 } // namespace ns3
 

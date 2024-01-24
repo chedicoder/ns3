@@ -1,4 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
@@ -17,14 +16,16 @@
  *
  */
 
-#include "ns3/nr-sl-rlc-sap.h"
+#include "nr-sl-rlc-sap.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-NrSlRlcSapProvider::~NrSlRlcSapProvider ()
+NrSlRlcSapProvider::~NrSlRlcSapProvider()
 {
 }
-NrSlRlcSapUser::~NrSlRlcSapUser ()
+
+NrSlRlcSapUser::~NrSlRlcSapUser()
 {
 }
 
