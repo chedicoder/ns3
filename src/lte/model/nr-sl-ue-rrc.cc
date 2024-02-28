@@ -115,17 +115,14 @@ NrSlUeRrc::SetNrSlPreconfiguration(const LteRrcSap::SidelinkPreconfigNr& preconf
 {
     NS_LOG_FUNCTION(this);
     m_preconfiguration = preconfiguration;
-    SetTddPattern();
+    m_tddPattern = ConvertTddPattern(m_preconfiguration.slPreconfigGeneral.slTddConfig.tddPattern);
     // Tell RRC to populate pools
     m_nrSlUeRrcSapProvider->PopulatePools();
 }
 
-void
-NrSlUeRrc::SetTddPattern()
+std::vector<NrSlUeRrc::LteNrTddSlotType>
+NrSlUeRrc::ConvertTddPattern(std::string tddPattern)
 {
-    NS_LOG_FUNCTION(this);
-    std::string tddPattern = m_preconfiguration.slPreconfigGeneral.slTddConfig.tddPattern;
-    NS_LOG_INFO(this << " Setting TDD pattern " << tddPattern);
     static std::unordered_map<std::string, NrSlUeRrc::LteNrTddSlotType> lookupTable = {
         {"DL", NrSlUeRrc::LteNrTddSlotType::DL},
         {"UL", NrSlUeRrc::LteNrTddSlotType::UL},
@@ -152,7 +149,7 @@ NrSlUeRrc::SetTddPattern()
         vector.push_back(lookupTable[v]);
     }
 
-    m_tddPattern = vector;
+    return vector;
 }
 
 const LteRrcSap::SidelinkPreconfigNr
