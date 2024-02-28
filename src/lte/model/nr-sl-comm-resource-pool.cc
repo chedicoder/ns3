@@ -117,17 +117,24 @@ NrSlCommResourcePool::operator==(const NrSlCommResourcePool& other) const
                         slTxPoolOther.at(poolIndex)
                             .slResourcePool.slUeSelectedConfigRp.slMultiReserveResource;
 
-            std::array<LteRrcSap::SlResourceReservePeriod, 16> listLocal =
+            std::list<LteRrcSap::SlResourceReservePeriod> listLocal =
                 slTxPoolLocal.at(poolIndex)
                     .slResourcePool.slUeSelectedConfigRp.slResourceReservePeriodList;
-            std::array<LteRrcSap::SlResourceReservePeriod, 16> listOther =
+            std::list<LteRrcSap::SlResourceReservePeriod> listOther =
                 slTxPoolOther.at(poolIndex)
                     .slResourcePool.slUeSelectedConfigRp.slResourceReservePeriodList;
-            bool listEquality = false;
-            for (uint32_t resPListIndex = 0; resPListIndex < listLocal.size(); ++resPListIndex)
+            bool listEquality = true;
+            auto localIt = listLocal.cbegin();
+            auto otherIt = listOther.cbegin();
+            while (localIt != listLocal.cend() && otherIt != listOther.cend())
             {
-                listEquality =
-                    listLocal.at(resPListIndex).period == listOther.at(resPListIndex).period;
+                if ((*localIt).period == (*otherIt).period)
+                {
+                    listEquality = false;
+                    break;
+                }
+                localIt++;
+                otherIt++;
             }
 
             equal = equal && listEquality;
@@ -351,7 +358,7 @@ NrSlCommResourcePool::ValidateResvPeriod(uint8_t bwpId,
     NS_LOG_FUNCTION(this << +bwpId << poolId << resvPeriod.GetMilliSeconds());
     [[maybe_unused]] NrSlCommResourcePool::BwpAndPoolIt ret = ValidateBwpAndPoolId(bwpId, poolId);
     const LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
-    std::array<LteRrcSap::SlResourceReservePeriod, 16> resvPeriodList =
+    std::list<LteRrcSap::SlResourceReservePeriod> resvPeriodList =
         pool.slUeSelectedConfigRp.slResourceReservePeriodList;
     auto periodInt = static_cast<uint16_t>(resvPeriod.GetMilliSeconds());
     LteRrcSap::SlResourceReservePeriod resvPeriodEnum = LteRrcSap::GetSlResoResvPrdEnum(periodInt);
@@ -366,6 +373,22 @@ NrSlCommResourcePool::ValidateResvPeriod(uint8_t bwpId,
         }
     }
     NS_ABORT_MSG_IF(!found, "The given reservation period is not in the user specified list");
+}
+
+std::list<uint16_t>
+NrSlCommResourcePool::GetSlResourceReservePeriodList(uint8_t bwpId, uint16_t poolId) const
+{
+    NS_LOG_FUNCTION(this << +bwpId << poolId);
+    std::list<uint16_t> rpList;
+    const LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
+    std::list<LteRrcSap::SlResourceReservePeriod> resvPeriodList =
+        pool.slUeSelectedConfigRp.slResourceReservePeriodList;
+    for (const auto& it : resvPeriodList)
+    {
+        uint16_t value = LteRrcSap::GetSlResoResvPrdValue(it);
+        rpList.push_back(value);
+    }
+    return rpList;
 }
 
 uint16_t

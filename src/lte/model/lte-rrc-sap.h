@@ -1566,7 +1566,7 @@ class LteRrcSap
         bool slMultiReserveResource{
             false}; //!< Flag to enable the reservation of an initial transmission of a TB by an SCI
                     //!< associated with a different TB.
-        std::array<SlResourceReservePeriod, 16>
+        std::list<SlResourceReservePeriod>
             slResourceReservePeriodList; //!< Set of possible resource reservation period allowed in
                                          //!< the resource pool.
         SlMaxNumPerReserve
@@ -1578,11 +1578,6 @@ class LteRrcSap
         // by introducing an attribute directly in UE PHY class.
         // sl-ThresPSSCH-RSRP-List-r16 //TODO //!< Indicates a threshold used for sensing based UE
         // autonomous resource selection.
-
-        // sl-MultiReserveResource-r16 //TODO //!< Flag to enable the reservation of an initial
-        // transmission of a TB by an SCI associated with a different TB.
-        // sl-ResourceReservePeriodList-r16 //TODO //!< Set of possible resource reservation period
-        // allowed in the resource pool.
 
         // since we do not support DMRS signals
         // we will rely on the PSCCH RSRP and SCI message
