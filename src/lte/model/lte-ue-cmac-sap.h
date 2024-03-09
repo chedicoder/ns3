@@ -20,6 +20,8 @@
 #ifndef LTE_UE_CMAC_SAP_H
 #define LTE_UE_CMAC_SAP_H
 
+#include "lte-sl-tft.h"
+
 #include <ns3/packet.h>
 
 namespace ns3
@@ -80,6 +82,9 @@ class LteUeCmacSapProvider
         uint16_t prioritizedBitRateKbps; ///< prioritize bit rate Kbps
         uint16_t bucketSizeDurationMs;   ///< bucket size duration ms
         uint8_t logicalChannelGroup;     ///< logical channel group
+        LteSlTft::CastType castType;     ///< Type of communication
+        bool harqEnabled;                ///< whether HARQ is enabled
+        Time delayBudget;                ///< Packet delay budget
     };
 
     /**

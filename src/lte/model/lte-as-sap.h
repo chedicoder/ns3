@@ -20,6 +20,8 @@
 #ifndef LTE_AS_SAP_H
 #define LTE_AS_SAP_H
 
+#include "lte-sl-tft.h"
+
 #include <ns3/packet.h>
 #include <ns3/ptr.h>
 
@@ -95,12 +97,16 @@ class LteAsSapProvider
      * \param dstL2Id The remote layer 3 id
      * \param isTransmit True if the bearer is for transmission
      * \param isReceive True if the bearer is for reception
-     * \param isUnicast True if the bearer is for unicast communication
+     * \param castType Type of communication
+     * \param harqEnabled True if HARQ enabled
+     * \param delayBudget Packet delay budget
      */
     virtual void ActivateNrSlRadioBearer(uint32_t dstL2Id,
                                          bool isTransmit,
                                          bool isReceive,
-                                         bool isUnicast) = 0;
+                                         LteSlTft::CastType castType,
+                                         bool harqEnabled,
+                                         Time delayBudget) = 0;
 
     /**
      * \brief Send sidelink data packet to RRC.
@@ -182,7 +188,9 @@ class MemberLteAsSapProvider : public LteAsSapProvider
     void ActivateNrSlRadioBearer(uint32_t dstL2Id,
                                  bool isTransmit,
                                  bool isReceive,
-                                 bool isUnicast) override;
+                                 LteSlTft::CastType castType,
+                                 bool isHarqEnabled,
+                                 Time delayBudget) override;
     void SendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id) override;
 
   private:
@@ -242,9 +250,16 @@ void
 MemberLteAsSapProvider<C>::ActivateNrSlRadioBearer(uint32_t dstL2Id,
                                                    bool isTransmit,
                                                    bool isReceive,
-                                                   bool isUnicast)
+                                                   LteSlTft::CastType castType,
+                                                   bool harqEnabled,
+                                                   Time delayBudget)
 {
-    m_owner->DoActivateNrSlRadioBearer(dstL2Id, isTransmit, isReceive, isUnicast);
+    m_owner->DoActivateNrSlRadioBearer(dstL2Id,
+                                       isTransmit,
+                                       isReceive,
+                                       castType,
+                                       harqEnabled,
+                                       delayBudget);
 }
 
 template <class C>

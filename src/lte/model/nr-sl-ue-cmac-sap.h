@@ -19,6 +19,8 @@
 #ifndef NR_SL_UE_CMAC_SAP_H
 #define NR_SL_UE_CMAC_SAP_H
 
+#include "lte-sl-tft.h"
+
 #include <ns3/ptr.h>
 
 #include <limits>
@@ -58,6 +60,9 @@ class NrSlUeCmacSapProvider
         bool isGbr{false}; //!< true if the bearer is GBR, false if the bearer is NON-GBR
         uint64_t mbr{0};   //!< maximum bitrate
         uint64_t gbr{0};   //!< guaranteed bitrate
+        LteSlTft::CastType castType{LteSlTft::CastType::Invalid}; //!< Cast type per TS 38.212
+        bool harqEnabled{false};      //!< Whether HARQ should be enabled
+        Time delayBudget{Seconds(0)}; //!< Packet delay budget (PDB)
     };
 
     /**

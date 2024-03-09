@@ -3510,12 +3510,15 @@ void
 LteUeRrc::DoActivateNrSlRadioBearer(uint32_t dstL2Id,
                                     bool isTransmit,
                                     bool isReceive,
-                                    bool isUnicast)
+                                    LteSlTft::CastType castType,
+                                    bool harqEnabled,
+                                    Time delayBudget)
 {
-    NS_LOG_FUNCTION(this << dstL2Id << isTransmit << isReceive << isUnicast);
-    if (!isUnicast)
+    NS_LOG_FUNCTION(this << dstL2Id << isTransmit << isReceive << static_cast<uint16_t>(castType)
+                         << harqEnabled << delayBudget.As(Time::MS));
+    if (castType != LteSlTft::CastType::Unicast)
     {
-        ActivateNrSlDrb(dstL2Id, isTransmit, isReceive);
+        ActivateNrSlDrb(dstL2Id, isTransmit, isReceive, castType, harqEnabled, delayBudget);
     }
 }
 
@@ -3538,9 +3541,15 @@ LteUeRrc::DoSetSourceL2Id(uint32_t srcL2Id)
 }
 
 void
-LteUeRrc::ActivateNrSlDrb(uint32_t dstL2Id, bool isTransmit, bool isReceive)
+LteUeRrc::ActivateNrSlDrb(uint32_t dstL2Id,
+                          bool isTransmit,
+                          bool isReceive,
+                          LteSlTft::CastType castType,
+                          bool harqEnabled,
+                          Time delayBudget)
 {
-    NS_LOG_FUNCTION(this << dstL2Id << isTransmit << isReceive);
+    NS_LOG_FUNCTION(this << dstL2Id << isTransmit << isReceive << static_cast<uint16_t>(castType)
+                         << harqEnabled << delayBudget.As(Time::MS));
 
     switch (m_state)
     {
@@ -3563,7 +3572,12 @@ LteUeRrc::ActivateNrSlDrb(uint32_t dstL2Id, bool isTransmit, bool isReceive)
         if (isTransmit)
         {
             Ptr<NrSlDataRadioBearerInfo> slDrbInfo =
-                AddNrSlDrb(m_srcL2Id, dstL2Id, m_nrSlRrcSapUser->GetNextLcid(dstL2Id));
+                AddNrSlDrb(m_srcL2Id,
+                           dstL2Id,
+                           m_nrSlRrcSapUser->GetNextLcid(dstL2Id),
+                           castType,
+                           harqEnabled,
+                           delayBudget);
             NS_LOG_INFO("Created new TX SLRB for remote id "
                         << dstL2Id << " LCID = " << +slDrbInfo->m_logicalChannelIdentity);
         }
@@ -3647,7 +3661,12 @@ LteUeRrc::DoNotifySidelinkReception(uint8_t lcId, uint32_t srcL2Id, uint32_t dst
 }
 
 Ptr<NrSlDataRadioBearerInfo>
-LteUeRrc::AddNrSlDrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid)
+LteUeRrc::AddNrSlDrb(uint32_t srcL2Id,
+                     uint32_t dstL2Id,
+                     uint8_t lcid,
+                     LteSlTft::CastType castType /* = LteSlTft::CastType::Invalid */,
+                     bool harqEnabled /* = false */,
+                     Time delayBudget /* = Seconds (0) */)
 {
     NS_LOG_FUNCTION(this);
 
@@ -3666,6 +3685,9 @@ LteUeRrc::AddNrSlDrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid)
     lcInfo.isGbr = true;
     lcInfo.gbr = 65535; // bits/s random value
     lcInfo.mbr = lcInfo.gbr;
+    lcInfo.castType = castType;
+    lcInfo.harqEnabled = harqEnabled;
+    lcInfo.delayBudget = delayBudget;
 
     Ptr<NrSlDataRadioBearerInfo> slDrbInfo = CreateObject<NrSlDataRadioBearerInfo>();
     slDrbInfo->m_sourceL2Id = lcInfo.srcL2Id;

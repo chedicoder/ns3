@@ -410,9 +410,11 @@ EpcUeNas::ActivateNrSlBearer(Ptr<LteSlTft> tft)
     // for out of coverage, it will trigger the use of preconfiguration
     m_pendingSlBearersList.push_back(tft);
     m_asSapProvider->ActivateNrSlRadioBearer(tft->GetDstL2Id(),
-                                             tft->isTransmit(),
-                                             tft->isReceive(),
-                                             tft->isUnicast());
+                                             tft->IsTransmit(),
+                                             tft->IsReceive(),
+                                             tft->GetCastType(),
+                                             tft->IsHarqEnabled(),
+                                             tft->GetDelayBudget());
 }
 
 void
