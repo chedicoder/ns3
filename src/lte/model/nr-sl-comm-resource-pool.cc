@@ -243,6 +243,13 @@ NrSlCommResourcePool::SlotHasPsfch(uint64_t absIndexCurrentSlot,
     return hasPsfch;
 }
 
+uint8_t
+NrSlCommResourcePool::GetMinTimeGapPsfch(uint8_t bwpId, uint16_t poolId) const
+{
+    LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
+    return LteRrcSap::GetSlMinTimeGapPsfchValue(pool.slPsfchConfig.slMinTimeGapPsfch);
+}
+
 std::list<NrSlCommResourcePool::SlotInfo>
 NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurrentSlot,
                                                uint8_t bwpId,
