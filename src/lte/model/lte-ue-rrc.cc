@@ -3516,10 +3516,7 @@ LteUeRrc::DoActivateNrSlRadioBearer(uint32_t dstL2Id,
 {
     NS_LOG_FUNCTION(this << dstL2Id << isTransmit << isReceive << static_cast<uint16_t>(castType)
                          << harqEnabled << delayBudget.As(Time::MS));
-    if (castType != LteSlTft::CastType::Unicast)
-    {
-        ActivateNrSlDrb(dstL2Id, isTransmit, isReceive, castType, harqEnabled, delayBudget);
-    }
+    ActivateNrSlDrb(dstL2Id, isTransmit, isReceive, castType, harqEnabled, delayBudget);
 }
 
 void
