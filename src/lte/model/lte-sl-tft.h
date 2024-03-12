@@ -46,6 +46,47 @@ namespace ns3
 {
 
 /**
+ * \brief structure to hold sidelink information about a logical channel
+ *
+ * Corresponds to "Sidelink Transmission/Identification/Other Information"
+ * define in TS 38.321.
+ */
+struct SidelinkInfo
+{
+    /**
+     * \brief Indicates the type of communication.  Corresponds to
+     * TS 38.212 Table 8.4.1.1-1: Cast type indicator
+     */
+    enum class CastType
+    {
+        Broadcast = 0,
+        Groupcast = 1,
+        Unicast = 2,
+        GroupcastNegativeOnly = 3,
+        Invalid = 4
+    };
+
+    CastType m_castType{CastType::Invalid}; //!< Cast type
+    uint32_t m_srcL2Id{0};                  //!< Source L2 ID
+    uint32_t m_dstL2Id{0};                  //!< 24 bit L2 id of remote entity
+    bool m_harqEnabled{false};              //!< Whether HARQ is enabled
+    Time m_pdb;                             //!< Packet Delay Budget
+    bool m_dynamic{false};                  //!< flag for whether LC is dynamic or SPS
+    Time m_rri{0};                          //!< Resource Reservation Interval
+    uint8_t m_lcId{0};                      //!< Logical channel ID
+    uint8_t m_priority{0};                  //!< Priority
+};
+
+/**
+ * \brief Equality operator.
+ *
+ * \param a lhs
+ * \param b rhs
+ * \returns true if operands are equal, false otherwise
+ */
+bool operator==(const SidelinkInfo a, const SidelinkInfo b);
+
+/**
  * \ingroup Lte
  *
  * \brief  Traffic flow template used by sidelink bearers.
@@ -86,35 +127,45 @@ class LteSlTft : public SimpleRefCount<LteSlTft>
      * \brief Constructor
      *
      * \param d The direction
-     * \param castType The communication type
      * \param remoteAddr The IPv4 address of the remote
-     * \param dstL2Id The destination layer 2 id
-     * \param harqEnabled Whether HARQ feedback is enabled
-     * \param delayBudget Packet delay budget
+     * \param slInfo SidelinkInfo structure
      */
-    LteSlTft(Direction d,
-             CastType castType,
-             Ipv4Address remoteAddr,
-             uint32_t dstL2Id,
-             bool harqEnabled,
-             Time delayBudget);
+    LteSlTft(Direction d, Ipv4Address remoteAddr, const struct SidelinkInfo& slInfo);
 
     /**
      * \brief Constructor
      *
      * \param d The direction
-     * \param castType The communication type
      * \param remoteAddr The IPv6 address of the remote
-     * \param dstL2Id The destination layer 2 id
-     * \param harqEnabled Whether HARQ feedback is enabled
-     * \param delayBudget Packet delay budget
+     * \param slInfo SidelinkInfo structure
+     */
+    LteSlTft(Direction d, Ipv6Address remoteAddr, const struct SidelinkInfo& slInfo);
+
+    /**
+     * \brief Constructor
+     *
+     * \param d The direction
+     * \param remoteAddr The IPv4 address of the remote
+     * \param remotePort The port number of the remote
+     * \param slInfo SidelinkInfo structure
      */
     LteSlTft(Direction d,
-             CastType castType,
+             Ipv4Address remoteAddr,
+             uint16_t remotePort,
+             const struct SidelinkInfo& slInfo);
+
+    /**
+     * \brief Constructor
+     *
+     * \param d The direction
+     * \param remoteAddr The IPv6 address of the remote
+     * \param remotePort The port number of the remote
+     * \param slInfo SidelinkInfo structure
+     */
+    LteSlTft(Direction d,
              Ipv6Address remoteAddr,
-             uint32_t dstL2Id,
-             bool harqEnabled,
-             Time delayBudget);
+             uint16_t remotePort,
+             const struct SidelinkInfo& slInfo);
 
     /**
      * \brief Constructor for copy
@@ -142,6 +193,28 @@ class LteSlTft : public SimpleRefCount<LteSlTft>
     bool Matches(Ipv6Address ra) const;
 
     /**
+     * \brief Function to evaluate if the SL TFT matches the remote IPv6 address
+     *        and the remote port
+     *
+     * \param ra the remote address
+     * \param rp the remote port
+     *
+     * \return true if the TFT matches with the parameters, false otherwise.
+     */
+    bool Matches(Ipv6Address ra, uint16_t rp);
+
+    /**
+     * \brief Function to evaluate if the SL TFT matches the remote IPv4 address
+     *        and the remote port
+     *
+     * \param ra the remote address
+     * \param rp the remote port
+     *
+     * \return true if the TFT matches with the parameters, false otherwise.
+     */
+    bool Matches(Ipv4Address ra, uint16_t rp);
+
+    /**
      * \brief Function to evaluate if the SL TFT is completely equal to another SL TFT
      *
      * \param tft the tft to compare
@@ -151,10 +224,17 @@ class LteSlTft : public SimpleRefCount<LteSlTft>
     bool Equals(Ptr<LteSlTft> tft) const;
 
     /**
-     * \brief Gets the Destination L2 id associated with the TFT
-     * \return The Destination L2 address associated with the TFT
+     * \brief Gets the SidelinkInfo associated with the TFT
+     * \return The SidelinkInfo associated with the TFT
      */
-    uint32_t GetDstL2Id() const;
+    struct SidelinkInfo GetSidelinkInfo() const;
+
+    /**
+     * \brief Set the lcId of the SidelinkInfo associated with the TFT
+     *
+     * \param lcId The logical channel id to be set
+     */
+    void SetSidelinkInfoLcId(uint8_t lcId);
 
     /**
      * \brief Indicates if the TFT is for an incoming sidelink bearer
@@ -169,10 +249,10 @@ class LteSlTft : public SimpleRefCount<LteSlTft>
     bool IsTransmit() const;
 
     /**
-     * \brief Return the cast type value
-     * \return cast type value
+     * \brief Indicates if the TFT is for unicast communication
+     * \return true if the TFT is for the unicast communication
      */
-    CastType GetCastType() const;
+    bool IsUnicast() const;
 
     /**
      * \brief Indicates if the TFT is for HARQ feedback-enabled communication
@@ -190,15 +270,16 @@ class LteSlTft : public SimpleRefCount<LteSlTft>
     Direction m_direction{Direction::INVALID}; /**< whether the filter needs to be applied
                                                 * to sending or receiving only, or in both cases
                                                 */
-    CastType m_castType{CastType::Invalid};    //!< The type of communication
     bool m_hasRemoteAddress{false}; //!< Indicates if the TFT has remoteAddress information
     Ipv4Address m_remoteAddress{Ipv4Address::GetZero()};  //!< IPv4 address of the remote host
     Ipv6Address m_remoteAddress6{Ipv6Address::GetZero()}; //!< IPv6 address of the remote host
     Ipv4Mask m_remoteMask{Ipv4Mask::GetZero()};           //!< IPv4 address mask of the remote host
     Ipv6Prefix m_remoteMask6{Ipv6Prefix::GetZero()};      //!< IPv6 address mask of the remote host
-    uint32_t m_dstL2Id{0};                                //!< 24 bit L2 id of remote entity
     bool m_harqEnabled{false};                            //!< Whether HARQ is enabled
     Time m_delayBudget{Seconds(0)};                       //!< Packet delay budget
+    bool m_hasRemotePort{false};        //!< Indicates if the TFT has remotePort information
+    uint16_t m_remotePort{0};           /**< Port number of the remote host */
+    struct SidelinkInfo m_sidelinkInfo; //!< SidelinkInfo struct
 };
 
 } // namespace ns3

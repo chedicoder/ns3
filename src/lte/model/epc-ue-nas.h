@@ -268,9 +268,9 @@ class EpcUeNas : public Object
     /**
      * \brief Notify Nr Sidelink radio bearer activated function
      *
-     * \param dstL2Id The destination L2 id
+     * \param slInfo The sidelink information
      */
-    void DoNotifyNrSlRadioBearerActivated(uint32_t dstL2Id);
+    void DoNotifyNrSlRadioBearerActivated(const struct SidelinkInfo& slInfo);
 
     std::list<Ptr<LteSlTft>> m_pendingSlBearersList; ///< pending NR Sidelink bearers list
 

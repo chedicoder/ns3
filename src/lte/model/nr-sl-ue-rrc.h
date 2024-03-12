@@ -81,6 +81,11 @@ class NrSlUeRrc : public Object
      */
     typedef std::unordered_map<uint32_t, NrSlDrbMapPerLcId> NrSlDrbMapPerL2Id;
     /**
+     * Map between a pair of L2 id (typically source and destination), logical channel id and data
+     * radio bearer for transmissions.
+     */
+    typedef std::map<std::pair<uint32_t, uint32_t>, NrSlDrbMapPerLcId> NrSlDrbMapPerPairL2Id;
+    /**
      * \brief Get the pointer for the NR sidelink UE RRC SAP User interface
      *        offered to UE RRC by this class
      *
@@ -172,21 +177,32 @@ class NrSlUeRrc : public Object
      */
     const std::set<uint8_t> DoGetBwpIdContainer();
     /**
-     * \brief Add NR sidelink data radio bearer
-     * \param slDrb LteSidelinkRadioBearerInfo pointer
+     * \brief Add NR transmission sidelink data radio bearer
+     * \param slTxDrb LteSidelinkRadioBearerInfo pointer
      */
-    void DoAddNrSlDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slDrb);
+    void DoAddNrSlTxDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slTxDrb);
     /**
      * \brief Add NR Reception sidelink data radio bearer
      * \param slRxDrb LteSidelinkRadioBearerInfo pointer
      */
     void DoAddNrSlRxDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slRxDrb);
     /**
-     * \brief Get NR Sidelink data radio bearer
+     * \brief Get NR Sidelink Tx data radio bearer
      * \param dstL2Id The remote/destination layer 2 id
+     * \param lcId The logical channel id
      * \return The NrSlDataRadioBearerInfo
      */
-    Ptr<NrSlDataRadioBearerInfo> DoGetSidelinkDataRadioBearer(uint32_t dstL2Id);
+    Ptr<NrSlDataRadioBearerInfo> DoGetSidelinkTxDataRadioBearer(uint32_t dstL2Id, uint8_t lcId);
+    /**
+     * \brief Get NR Sidelink Rx data radio bearer
+     * Returns a null pointer if there is no match
+     *
+     * \param srcL2Id The source layer 2 id
+     * \param lcId The logical channel id
+     * \return The NrSlDataRadioBearerInfo, or a null pointer if there is no match
+     */
+    Ptr<NrSlDataRadioBearerInfo> DoGetSidelinkRxDataRadioBearer(uint32_t srcL2Id, uint8_t lcId);
+
     /**
      * \brief Get Source layer 2 id
      * \return source layer 2 id
@@ -202,14 +218,32 @@ class NrSlUeRrc : public Object
     // Class internal private methods and member variables
 
     /**
-     * \brief Get NR Sidelink data radio bearer
+     * \brief Get NR Sidelink Tx data radio bearer
      *
      * \param srcL2Id The source layer 2 id
      * \param dstL2Id The remote/destination layer 2 id
+     * \param lcId The logical channel id
      *
      * \return The NrSlDataRadioBearerInfo
      */
-    Ptr<NrSlDataRadioBearerInfo> GetSidelinkDataRadioBearer(uint32_t srcL2Id, uint32_t dstL2Id);
+    Ptr<NrSlDataRadioBearerInfo> GetSidelinkTxDataRadioBearer(uint32_t srcL2Id,
+                                                              uint32_t dstL2Id,
+                                                              uint8_t lcId);
+
+    /**
+     * \brief Get NR Sidelink Rx data radio bearer
+     * Returns a null pointer if there is no match
+     *
+     * \param srcL2Id The source layer 2 id
+     * \param dstL2Id The destination layer 2 id
+     * \param lcId The logical channel id
+     *
+     * \return The NrSlDataRadioBearerInfo
+     */
+    Ptr<NrSlDataRadioBearerInfo> GetSidelinkRxDataRadioBearer(uint32_t srcL2Id,
+                                                              uint32_t dstL2Id,
+                                                              uint8_t lcid);
+
     // NR sidelink UE RRC SAP
     NrSlUeRrcSapUser* m_nrSlRrcSapUser{nullptr};           ///< NR SL UE RRC SAP user
     NrSlUeRrcSapProvider* m_nrSlUeRrcSapProvider{nullptr}; ///< NR SL UE RRC SAP provider
@@ -226,17 +260,17 @@ class NrSlUeRrc : public Object
     // I am using std::set here instead of std::unordered_set for 2 reason:
     // 1. Python bindings does not support std::unordered_set
     // 2. I do not see this container to pass max 2 elements
-    std::set<uint8_t> m_slBwpIds;   //!< A container to store SL BWP ids
-    NrSlDrbMapPerL2Id m_slDrbMap;   /**< NR sidelink data radio bearer map per
-                                     * destination layer 2 id. For Group-Cast
-                                     * it will only hold the tx bearer info.
-                                     * We use another map to store rx bearer
-                                     * info.
-                                     */
-    NrSlDrbMapPerL2Id m_slRxDrbMap; /**< NR sidelink rx data radio bearer map
-                                     * per source layer 2 id of the sender
-                                     * for Group-Cast.
-                                     */
+    std::set<uint8_t> m_slBwpIds;       //!< A container to store SL BWP ids
+    NrSlDrbMapPerL2Id m_slTxDrbMap;     /**< NR sidelink data radio bearer map per
+                                         * destination layer 2 id. For Group-Cast
+                                         * it will only hold the tx bearer info.
+                                         * We use another map to store rx bearer
+                                         * info.
+                                         */
+    NrSlDrbMapPerPairL2Id m_slRxDrbMap; /**< NR sidelink rx data radio bearer map
+                                         * per source layer 2 id of the sender
+                                         * for Group-Cast.
+                                         */
 
 }; // end of NrSlUeRrc'class
 

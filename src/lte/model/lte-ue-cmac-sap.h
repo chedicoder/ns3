@@ -78,13 +78,11 @@ class LteUeCmacSapProvider
     /// LogicalChannelConfig structure
     struct LogicalChannelConfig
     {
-        uint8_t priority;                ///< priority
-        uint16_t prioritizedBitRateKbps; ///< prioritize bit rate Kbps
-        uint16_t bucketSizeDurationMs;   ///< bucket size duration ms
-        uint8_t logicalChannelGroup;     ///< logical channel group
-        LteSlTft::CastType castType;     ///< Type of communication
-        bool harqEnabled;                ///< whether HARQ is enabled
-        Time delayBudget;                ///< Packet delay budget
+        uint8_t priority;                 ///< priority
+        uint16_t prioritizedBitRateKbps;  ///< prioritize bit rate Kbps
+        uint16_t bucketSizeDurationMs;    ///< bucket size duration ms
+        uint8_t logicalChannelGroup;      ///< logical channel group
+        struct SidelinkInfo sidelinkInfo; ///< sidelink information
     };
 
     /**

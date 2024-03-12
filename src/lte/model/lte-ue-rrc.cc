@@ -3481,11 +3481,13 @@ LteUeRrc::DoReceiveNrSlPdcpSdu(const NrSlPdcpSapUser::NrSlReceivePdcpSduParamete
 }
 
 void
-LteUeRrc::DoSendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id)
+LteUeRrc::DoSendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id, uint8_t lcId)
 {
-    NS_LOG_FUNCTION(this << packet << " for NR Sidelink. destination layer 2 id " << dstL2Id);
+    NS_LOG_FUNCTION(this << packet << " for NR Sidelink. destination layer 2 id " << dstL2Id
+                         << " lcId " << +lcId);
     // Find the PDCP for NR Sidelink transmission
-    Ptr<NrSlDataRadioBearerInfo> slDrb = m_nrSlRrcSapUser->GetSidelinkDataRadioBearer(dstL2Id);
+    Ptr<NrSlDataRadioBearerInfo> slDrb =
+        m_nrSlRrcSapUser->GetSidelinkTxDataRadioBearer(dstL2Id, lcId);
 
     // If there are multiple bearers, hence, multiple LCs, for a destination the
     // the NAS layer should be aware about this. That is, it should give RRC a
@@ -3507,16 +3509,12 @@ LteUeRrc::DoSendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id)
 }
 
 void
-LteUeRrc::DoActivateNrSlRadioBearer(uint32_t dstL2Id,
-                                    bool isTransmit,
+LteUeRrc::DoActivateNrSlRadioBearer(bool isTransmit,
                                     bool isReceive,
-                                    LteSlTft::CastType castType,
-                                    bool harqEnabled,
-                                    Time delayBudget)
+                                    const struct SidelinkInfo& slInfo)
 {
-    NS_LOG_FUNCTION(this << dstL2Id << isTransmit << isReceive << static_cast<uint16_t>(castType)
-                         << harqEnabled << delayBudget.As(Time::MS));
-    ActivateNrSlDrb(dstL2Id, isTransmit, isReceive, castType, harqEnabled, delayBudget);
+    NS_LOG_FUNCTION(this << isTransmit << isReceive);
+    ActivateNrSlDrb(isTransmit, isReceive, slInfo);
 }
 
 void
@@ -3538,15 +3536,15 @@ LteUeRrc::DoSetSourceL2Id(uint32_t srcL2Id)
 }
 
 void
-LteUeRrc::ActivateNrSlDrb(uint32_t dstL2Id,
-                          bool isTransmit,
-                          bool isReceive,
-                          LteSlTft::CastType castType,
-                          bool harqEnabled,
-                          Time delayBudget)
+LteUeRrc::ActivateNrSlDrb(bool isTransmit, bool isReceive, const struct SidelinkInfo& slInfo)
 {
-    NS_LOG_FUNCTION(this << dstL2Id << isTransmit << isReceive << static_cast<uint16_t>(castType)
-                         << harqEnabled << delayBudget.As(Time::MS));
+    NS_LOG_FUNCTION(this << isTransmit << isReceive << slInfo.m_srcL2Id << slInfo.m_dstL2Id
+                         << slInfo.m_lcId);
+
+    // Associate this RRC entity's source L2 ID with the sidelink info that
+    // was passed in (possibly with an uninitialized srcL2Id field)
+    struct SidelinkInfo slInfoWithSrcId(slInfo);
+    slInfoWithSrcId.m_srcL2Id = m_srcL2Id;
 
     switch (m_state)
     {
@@ -3569,61 +3567,87 @@ LteUeRrc::ActivateNrSlDrb(uint32_t dstL2Id,
         if (isTransmit)
         {
             Ptr<NrSlDataRadioBearerInfo> slDrbInfo =
-                AddNrSlDrb(m_srcL2Id,
-                           dstL2Id,
-                           m_nrSlRrcSapUser->GetNextLcid(dstL2Id),
-                           castType,
-                           harqEnabled,
-                           delayBudget);
+                AddNrSlTxDrb(slInfoWithSrcId.m_dstL2Id,
+                             m_nrSlRrcSapUser->GetNextLcid(slInfoWithSrcId.m_dstL2Id),
+                             slInfoWithSrcId);
+            slInfoWithSrcId.m_lcId = slDrbInfo->m_logicalChannelIdentity;
             NS_LOG_INFO("Created new TX SLRB for remote id "
-                        << dstL2Id << " LCID = " << +slDrbInfo->m_logicalChannelIdentity);
+                        << slInfoWithSrcId.m_dstL2Id
+                        << " LCID = " << +slDrbInfo->m_logicalChannelIdentity);
         }
 
         if ((isTransmit && isReceive) || isReceive)
         {
+            // Do not call AddNrSlRxDrb() here; receive DRB will be added upon packet reception
             std::set<uint8_t> bwpIdsSl = m_nrSlRrcSapUser->GetBwpIdContainer();
             for (const auto& it : bwpIdsSl)
             {
                 NS_LOG_INFO("Communicating Rx destination to the MAC of SL BWP "
                             << static_cast<uint16_t>(it));
-                m_nrSlUeCmacSapProvider.at(it)->AddNrSlRxDstL2Id(dstL2Id);
+                m_nrSlUeCmacSapProvider.at(it)->AddNrSlRxDstL2Id(slInfoWithSrcId.m_dstL2Id);
             }
         }
 
         // Notify NAS
-        m_asSapUser->NotifyNrSlRadioBearerActivated(dstL2Id);
-        // m_nrSlRrcSapUser->NotifyNrSlRadioBearerActivated (dstL2Id); I dont see the need of for
-        // now
+        m_asSapUser->NotifyNrSlRadioBearerActivated(slInfoWithSrcId);
         break;
-        /*
-            case IDLE_WAIT_SIB2:
-            case IDLE_CONNECTING:
-              NS_LOG_INFO ("Connecting, must wait to send message");
-              break;
 
-            case CONNECTED_NORMALLY:
-            case CONNECTED_HANDOVER:
-            case CONNECTED_PHY_PROBLEM:
-            case CONNECTED_REESTABLISHING:
-              NS_LOG_INFO ("Considering in coverage");
-              if (tx)
-                {
-                  Ptr<LteSidelinkRadioBearerInfo> slDrbInfo = AddSlrb
-           (m_sidelinkConfiguration->m_sourceL2Id, group, m_sidelinkConfiguration->GetNextLcid
-           (group)); NS_LOG_INFO ("Created new TX SLRB for group " << group << " LCID=" <<
-           (slDrbInfo->m_logicalChannelIdentity & 0xF));
-                }
-              if (rx)
-                {
-                  //Add to the list of group to monitor for Sidelink
-                  m_sidelinkConfiguration->m_rxGroup.push_back (group);
-                  //tell the phy to listen for the group
-                  m_cphySapProvider.at (0)->AddSlDestination (group);
-                  m_cmacSapProvider.at (0)->AddSlDestination (group);
-                }
-              //Try to send to eNodeB
-              SendSidelinkUeInformation (tx, rx, false, false);
-              break;*/
+    case IDLE_WAIT_SIB2:
+    case IDLE_CONNECTING:
+        NS_LOG_INFO("Connecting, must wait to send message");
+        break;
+
+    case CONNECTED_NORMALLY:
+    case CONNECTED_HANDOVER:
+    case CONNECTED_PHY_PROBLEM:
+    case CONNECTED_REESTABLISHING:
+        NS_LOG_INFO("Considering IMSI " << m_imsi << "RNTI " << m_rnti << " in coverage");
+        /*
+         * Currently, in-network UEs doing SL rely on preconfiguration.
+         * This part of the function should be modified/extended when the
+         * network will be involved in SL configuration and protocols.
+         */
+
+        // We are going to reuse RNTI assigned by the network for SL.
+        {
+            std::set<uint8_t> slBwpIds = m_nrSlRrcSapUser->GetBwpIdContainer();
+            for (const auto& it : slBwpIds)
+            {
+                NS_LOG_INFO("Communicating RNTI " << m_rnti << " to PHY and MAC in  in BWP "
+                                                  << +it);
+                m_cphySapProvider.at(it)->SetRnti(m_rnti);
+                m_cmacSapProvider.at(it)->SetRnti(m_rnti);
+            }
+        }
+        // We use same SL-DRB creation and configuration logic than OOC
+        if (isTransmit)
+        {
+            Ptr<NrSlDataRadioBearerInfo> slDrbInfo =
+                AddNrSlTxDrb(slInfoWithSrcId.m_dstL2Id,
+                             m_nrSlRrcSapUser->GetNextLcid(slInfoWithSrcId.m_dstL2Id),
+                             slInfoWithSrcId);
+            slInfoWithSrcId.m_lcId = slDrbInfo->m_logicalChannelIdentity;
+            NS_LOG_INFO("Created new TX SL-DRB for dstL2id "
+                        << slInfo.m_dstL2Id << " LCID = " << +slDrbInfo->m_logicalChannelIdentity);
+        }
+
+        if ((isTransmit && isReceive) || isReceive)
+        {
+            Ptr<NrSlDataRadioBearerInfo> slDrbInfo = AddNrSlRxDrb(slInfoWithSrcId.m_srcL2Id,
+                                                                  slInfoWithSrcId.m_dstL2Id,
+                                                                  slInfoWithSrcId.m_lcId);
+            std::set<uint8_t> bwpIdsSl = m_nrSlRrcSapUser->GetBwpIdContainer();
+            for (const auto& it : bwpIdsSl)
+            {
+                NS_LOG_INFO("Communicating Rx destination to the MAC of SL BWP "
+                            << static_cast<uint16_t>(it));
+                m_nrSlUeCmacSapProvider.at(it)->AddNrSlRxDstL2Id(slInfoWithSrcId.m_dstL2Id);
+            }
+        }
+
+        // Notify NAS
+        m_asSapUser->NotifyNrSlRadioBearerActivated(slInfoWithSrcId);
+        break;
 
     default: // i.e. IDLE_RANDOM_ACCESS
         NS_FATAL_ERROR("method unexpected in state " << ToString(m_state));
@@ -3648,43 +3672,45 @@ LteUeRrc::SetOutofCovrgUeRnti()
 }
 
 void
-LteUeRrc::DoNotifySidelinkReception(uint8_t lcId, uint32_t srcL2Id, uint32_t dstL2Id)
+LteUeRrc::DoNotifySidelinkReception(uint8_t lcId,
+                                    uint32_t srcL2Id,
+                                    uint32_t dstL2Id,
+                                    uint8_t castType,
+                                    bool harqEnabled)
 {
-    NS_LOG_FUNCTION(this << (uint16_t)lcId << srcL2Id << dstL2Id);
+    NS_LOG_FUNCTION(this << (uint16_t)lcId << srcL2Id << dstL2Id << static_cast<uint16_t>(castType)
+                         << harqEnabled);
     // add LC
-    Ptr<NrSlDataRadioBearerInfo> slbInfo = AddNrSlDrb(srcL2Id, dstL2Id, lcId);
+    Ptr<NrSlDataRadioBearerInfo> slbInfo = AddNrSlRxDrb(srcL2Id, dstL2Id, lcId);
     NS_LOG_INFO("Created new RX SLRB for group "
                 << dstL2Id << " LCID=" << (slbInfo->m_logicalChannelIdentity & 0xF));
 }
 
 Ptr<NrSlDataRadioBearerInfo>
-LteUeRrc::AddNrSlDrb(uint32_t srcL2Id,
-                     uint32_t dstL2Id,
-                     uint8_t lcid,
-                     LteSlTft::CastType castType /* = LteSlTft::CastType::Invalid */,
-                     bool harqEnabled /* = false */,
-                     Time delayBudget /* = Seconds (0) */)
+LteUeRrc::AddNrSlTxDrb(uint32_t dstL2Id, uint8_t lcid, const struct SidelinkInfo& slInfo)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << dstL2Id << +lcid);
 
-    NS_ABORT_MSG_IF((srcL2Id == 0 || dstL2Id == 0),
-                    "Layer 2 source or destination Id shouldn't be 0");
+    NS_ABORT_MSG_IF(dstL2Id == 0, "Layer 2 destination Id shouldn't be 0");
 
     NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo;
-    lcInfo.srcL2Id = srcL2Id;
+    lcInfo.srcL2Id = m_srcL2Id;
     lcInfo.dstL2Id = dstL2Id;
     lcInfo.lcId = lcid;
-    lcInfo.lcGroup = 3; // as per 36.331 9.1.1.6
+    lcInfo.lcGroup = 0; // Current scheduler handles only one LCG, all LCGs across different types
+                        // of bearers should be the same
+    lcInfo.priority = slInfo.m_priority;
+    lcInfo.castType = slInfo.m_castType;
+    lcInfo.harqEnabled = slInfo.m_harqEnabled;
+    lcInfo.pdb = slInfo.m_pdb;
+    lcInfo.dynamic = slInfo.m_dynamic;
+    lcInfo.rri = slInfo.m_rri;
     // following parameters have no impact at the moment
     // GBR Mission Critical User Plane Push To Talk voice TS 23.501 Table 5.7.4-1
-    lcInfo.priority = 7;
     lcInfo.pqi = 65;
     lcInfo.isGbr = true;
     lcInfo.gbr = 65535; // bits/s random value
     lcInfo.mbr = lcInfo.gbr;
-    lcInfo.castType = castType;
-    lcInfo.harqEnabled = harqEnabled;
-    lcInfo.delayBudget = delayBudget;
 
     Ptr<NrSlDataRadioBearerInfo> slDrbInfo = CreateObject<NrSlDataRadioBearerInfo>();
     slDrbInfo->m_sourceL2Id = lcInfo.srcL2Id;
@@ -3695,16 +3721,49 @@ LteUeRrc::AddNrSlDrb(uint32_t srcL2Id,
     slDrbInfo->m_logicalChannelConfig.prioritizedBitRateKbps = lcInfo.gbr;
     slDrbInfo->m_logicalChannelConfig.bucketSizeDurationMs = 1000; // Check this value \todo
 
-    if (m_srcL2Id == srcL2Id)
-    {
-        // Bearer for transmission
-        m_nrSlRrcSapUser->AddNrSlDataRadioBearer(slDrbInfo);
-    }
-    else
-    {
-        // Bearer for reception
-        m_nrSlRrcSapUser->AddNrSlRxDataRadioBearer(slDrbInfo);
-    }
+    m_nrSlRrcSapUser->AddNrSlTxDataRadioBearer(slDrbInfo);
+    return (FinishSlDrbConfiguration(slDrbInfo, lcInfo));
+}
+
+Ptr<NrSlDataRadioBearerInfo>
+LteUeRrc::AddNrSlRxDrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid)
+{
+    NS_LOG_FUNCTION(this << srcL2Id << dstL2Id << +lcid);
+
+    NS_ABORT_MSG_IF((srcL2Id == 0 || dstL2Id == 0),
+                    "Layer 2 source or destination Id shouldn't be 0");
+
+    NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo;
+    lcInfo.srcL2Id = srcL2Id;
+    lcInfo.dstL2Id = dstL2Id;
+    lcInfo.lcId = lcid;
+    lcInfo.lcGroup = 0; // Current scheduler handles only one LCG, all LCGs across different
+                        // types of bearers should be the same
+    // following parameters have no impact at the moment
+    // GBR Mission Critical User Plane Push To Talk voice TS 23.501 Table 5.7.4-1
+    lcInfo.priority = 7;
+    lcInfo.pqi = 65;
+    lcInfo.isGbr = true;
+    lcInfo.gbr = 65535; // bits/s random value
+    lcInfo.mbr = lcInfo.gbr;
+
+    Ptr<NrSlDataRadioBearerInfo> slDrbInfo = CreateObject<NrSlDataRadioBearerInfo>();
+    slDrbInfo->m_sourceL2Id = lcInfo.srcL2Id;
+    slDrbInfo->m_destinationL2Id = lcInfo.dstL2Id;
+    slDrbInfo->m_logicalChannelIdentity = lcInfo.lcId;
+    slDrbInfo->m_logicalChannelConfig.logicalChannelGroup = lcInfo.lcGroup;
+    slDrbInfo->m_logicalChannelConfig.priority = lcInfo.priority;
+    slDrbInfo->m_logicalChannelConfig.prioritizedBitRateKbps = lcInfo.gbr;
+    slDrbInfo->m_logicalChannelConfig.bucketSizeDurationMs = 1000; // Check this value \todo
+    m_nrSlRrcSapUser->AddNrSlRxDataRadioBearer(slDrbInfo);
+    return (FinishSlDrbConfiguration(slDrbInfo, lcInfo));
+}
+
+Ptr<NrSlDataRadioBearerInfo>
+LteUeRrc::FinishSlDrbConfiguration(Ptr<NrSlDataRadioBearerInfo> slDrbInfo,
+                                   const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& lcInfo)
+{
+    NS_LOG_FUNCTION(this << slDrbInfo << lcInfo);
 
     // create PDCP/RLC stack
     ObjectFactory rlcObjectFactory;
