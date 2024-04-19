@@ -3898,7 +3898,7 @@ LteUeRrc::PopulateNrSlPools()
 
             NS_LOG_INFO("Configuring TX pool for BWP " << +index << " IMSI " << m_imsi);
             m_nrSlUeCmacSapProvider.at(index)->AddNrSlCommTxPool(slPool);
-            m_nrSlUeCmacSapProvider.at(index)->SetSlProbResoKeep(
+            m_nrSlUeCmacSapProvider.at(index)->SetSlProbResourceKeep(
                 preConfig.slUeSelectedPreConfig.slProbResourceKeep);
             m_nrSlUeCmacSapProvider.at(index)->SetSlMaxTxTransNumPssch(
                 preConfig.slUeSelectedPreConfig.slPsschTxConfigList.slPsschTxParameters.at(0)
