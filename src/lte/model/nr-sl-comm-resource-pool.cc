@@ -257,6 +257,18 @@ NrSlCommResourcePool::GetPsfchPeriod(uint8_t bwpId, uint16_t poolId) const
     return LteRrcSap::GetSlPsfchPeriodValue(pool.slPsfchConfig.slPsfchPeriod);
 }
 
+uint16_t
+NrSlCommResourcePool::GetT2Min(uint8_t bwpId, uint16_t poolId, uint16_t numerology) const
+{
+    std::vector<std::bitset<1>> phyPool = GetNrSlPhyPool(bwpId, poolId);
+    const LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
+    // t2_min as a function of numerology. Discussed in 3GPP meeting R1-2003807
+    // also in TS 38.331 in SL-UE-SelectedConfigRP field descriptions
+    uint16_t t2min = LteRrcSap::GetSlSelWindowValue(pool.slUeSelectedConfigRp.slSelectionWindow);
+    t2min = t2min * static_cast<uint16_t>(std::pow(2, numerology));
+    return t2min;
+}
+
 std::list<NrSlCommResourcePool::SlotInfo>
 NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurrentSlot,
                                                uint8_t bwpId,

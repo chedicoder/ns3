@@ -65,6 +65,7 @@ class NrSlUeCmacSapProvider
         Time pdb;                //!< Packet Delay Budget
         bool dynamic{false};     //!< flag for whether it is dynamic or SPS
         Time rri;                //!< Resource Reservation Interval
+        Time t2;                 //!< T2 parameter for selection window
     };
 
     /**

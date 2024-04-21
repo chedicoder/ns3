@@ -3705,6 +3705,7 @@ LteUeRrc::AddNrSlTxDrb(uint32_t dstL2Id, uint8_t lcid, const struct SidelinkInfo
     lcInfo.pdb = slInfo.m_pdb;
     lcInfo.dynamic = slInfo.m_dynamic;
     lcInfo.rri = slInfo.m_rri;
+    lcInfo.t2 = slInfo.m_t2;
     // following parameters have no impact at the moment
     // GBR Mission Critical User Plane Push To Talk voice TS 23.501 Table 5.7.4-1
     lcInfo.pqi = 65;

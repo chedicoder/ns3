@@ -173,6 +173,17 @@ class NrSlCommResourcePool : public Object
      */
     void SetNrSlPhysicalPoolMap(NrSlCommResourcePool::PhySlPoolMap phySlPoolMap);
     /**
+     * \brief Get NR Sidelink T2min parameter (in slots)
+     * This value derives from the SelectionWindow value configured in
+     * SL-UE-SelectedConfigRP, and scaled by the numerology.
+     *
+     * \param bwpId The bandwidth part id
+     * \param poolId The pool id
+     * \param numerology The numerology
+     * \return The value of T2min in slots
+     */
+    uint16_t GetT2Min(uint8_t bwpId, uint16_t poolId, uint16_t numerology) const;
+    /**
      * \brief Get NR Sidelink physical sidelink pool
      *
      * \param bwpId The bandwidth part id
