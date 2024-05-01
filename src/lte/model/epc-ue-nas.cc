@@ -249,15 +249,29 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
                                                       (*it)->GetSidelinkInfo().m_lcId);
                     return true;
                 }
+                else
+                {
+                    NS_LOG_DEBUG("TFT is not a match for "
+                                 << ipv4Header.GetDestination() << ":" << remotePort
+                                 << " ; bearer has dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
+                }
             }
             // check if pending
             for (auto it = m_pendingSlBearersList.begin(); it != m_pendingSlBearersList.end(); it++)
             {
                 if ((*it)->Matches(ipv4Header.GetDestination(), remotePort))
                 {
-                    NS_LOG_WARN(this
-                                << "Matching sidelink bearer still pending, discarding packet");
+                    NS_LOG_WARN("Matching sidelink bearer still pending, discarding packet");
+                    // TODO: Add drop trace?
                     return false;
+                }
+                else
+                {
+                    NS_LOG_DEBUG("Pending bearer is not a match for "
+                                 << ipv4Header.GetDestination() << ":" << remotePort
+                                 << " ; bearer has dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
                 }
             }
         }
@@ -295,14 +309,21 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
                                                       (*it)->GetSidelinkInfo().m_lcId);
                     return true;
                 }
+                else
+                {
+                    NS_LOG_DEBUG("TFT is not a match for "
+                                 << ipv6Header.GetDestination() << ":" << remotePort
+                                 << " with dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
+                }
             }
             // check if pending
             for (auto it = m_pendingSlBearersList.begin(); it != m_pendingSlBearersList.end(); it++)
             {
                 if ((*it)->Matches(ipv6Header.GetDestination(), remotePort))
                 {
-                    NS_LOG_WARN(this
-                                << "Matching sidelink bearer still pending, discarding packet");
+                    NS_LOG_WARN("Matching sidelink bearer still pending, discarding packet");
+                    // TODO: Add drop trace?
                     return false;
                 }
             }
@@ -314,6 +335,7 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
         auto bid = (uint8_t)(id & 0x000000FF);
         if (bid == 0)
         {
+            // TODO: Add drop trace?
             return false;
         }
         else
@@ -359,6 +381,13 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
                                                       (*it)->GetSidelinkInfo().m_lcId);
                     return true;
                 }
+                else
+                {
+                    NS_LOG_DEBUG("Did not find matching TFT for "
+                                 << ipv4Header.GetDestination() << ":" << remotePort
+                                 << " bearer dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
+                }
             }
         }
         if (protocolNumber == Ipv6L3Protocol::PROT_NUMBER)
@@ -395,14 +424,22 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
                                                       (*it)->GetSidelinkInfo().m_lcId);
                     return true;
                 }
+                else
+                {
+                    NS_LOG_DEBUG("Did not find matching TFT for "
+                                 << ipv6Header.GetDestination() << ":" << remotePort
+                                 << " bearer dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
+                }
             }
         }
     }
     default:
-        NS_LOG_WARN(
-            this << " NAS neither OFF nor ACTIVE, or Sidelink bearer not found, discarding packet");
+        NS_LOG_WARN("NAS neither OFF nor ACTIVE, or Sidelink bearer not found, discarding packet");
+        // TODO:  Add drop trace?
         return false;
     }
+    // TODO: Check that all paths that return false also hit a drop trace somehow
 }
 
 void
