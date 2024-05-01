@@ -277,7 +277,7 @@ NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurrentSlot,
                                                uint8_t t1,
                                                uint16_t t2) const
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << absIndexCurrentSlot << +bwpId << numerology << poolId << +t1 << t2);
     std::vector<std::bitset<1>> phyPool = GetNrSlPhyPool(bwpId, poolId);
     const LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
 
