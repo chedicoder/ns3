@@ -318,7 +318,7 @@ class NrSlCommResourcePool : public Object
      * the value of slPsfchPeriod configured in the resource pool.
      *
      * \param absIndexCurrentSlot absolute slot count from simulation time 0
-     * \param bwpId bandwith part ID (to identify the pool)
+     * \param bwpId bandwidth part ID (to identify the pool)
      * \param poolId pool ID
      * \return true if the indicated slot has PSFCH, false otherwise
      */
@@ -327,7 +327,7 @@ class NrSlCommResourcePool : public Object
     /**
      * Return the MinTimeGapPsfch associated with the BWP and pool
      *
-     * \param bwpId bandwith part ID (to identify the pool)
+     * \param bwpId bandwidth part ID (to identify the pool)
      * \param poolId pool ID
      * \return value of the MinTimeGapPsfch, in slots
      */
@@ -336,7 +336,7 @@ class NrSlCommResourcePool : public Object
     /**
      * Return the PsfchPeriod associated with the BWP and pool
      *
-     * \param bwpId bandwith part ID (to identify the pool)
+     * \param bwpId bandwidth part ID (to identify the pool)
      * \param poolId pool ID
      * \return value of the PsfchPeriod, in slots
      */

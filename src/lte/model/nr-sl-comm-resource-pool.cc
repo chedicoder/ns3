@@ -203,8 +203,10 @@ NrSlCommResourcePool::SlotHasPsfch(uint64_t absIndexCurrentSlot,
                                    std::vector<std::bitset<1>>& phyPool,
                                    uint8_t psfchPeriod) const
 {
-    if (psfchPeriod == 0)
+    if (!psfchPeriod)
+    {
         return false;
+    }
 
     // Determine number of SL slots from absIndexCurrentSlot, and if the slot
     // is a SL slot, we should return true if the number of SL slots is a
@@ -226,10 +228,10 @@ NrSlCommResourcePool::SlotHasPsfch(uint64_t absIndexCurrentSlot,
     bool currentSlotIsSlSlot = false;
     for (uint16_t i = 0; i < psfchPeriod && !reachedLimit; i++)
     {
-        for (uint16_t j = 0; j < phyPool.size(); j++)
+        for (uint32_t j = 0; j < phyPool.size(); j++)
         {
             numSlSlots += (phyPool[j] == 1 ? 1 : 0);
-            currentSlotIsSlSlot = (phyPool[j] == 1 ? true : false);
+            currentSlotIsSlSlot = (phyPool[j] == 1);
             if ((i * phyPool.size()) + j == numSlotsIntoCurrentPeriod)
             {
                 reachedLimit = true;
