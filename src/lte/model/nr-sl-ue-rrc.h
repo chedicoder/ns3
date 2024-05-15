@@ -23,7 +23,9 @@
 
 #include <ns3/object.h>
 
+#include <map>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace ns3
