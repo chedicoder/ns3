@@ -1476,22 +1476,22 @@ class LteUeRrc : public Object
     /**
      * \brief Activate NR sidelink radio bearer
      *
-     * \param dstL2Id The remote layer 3 id
      * \param isTransmit True if the bearer is for transmission
      * \param isReceive True if the bearer is for reception
-     * \param isUnicast True if the bearer is for unicast communication
+     * \param slInfo The SidelinkInfo information
      */
-    void DoActivateNrSlRadioBearer(uint32_t dstL2Id,
-                                   bool isTransmit,
+    void DoActivateNrSlRadioBearer(bool isTransmit,
                                    bool isReceive,
-                                   bool isUnicast);
+                                   const struct SidelinkInfo& slInfo);
+
     /**
      * \brief Send sidelink data packet to RRC.
      *
      * \param packet The packet
      * \param dstL2Id The destination layer 2 id
+     * \param lcId The logical channel ID
      */
-    void DoSendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id);
+    void DoSendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id, uint8_t lcId);
 
     // NR SL RRC SAP provider methods
     /**
@@ -1515,11 +1515,11 @@ class LteUeRrc : public Object
     /**
      * \brief Activate NR sidelink data radio bearer
      *
-     * \param dstL2Id The remote layer 3 id
      * \param isTransmit True if the bearer is for transmission
      * \param isReceive True if the bearer is for reception
+     * \param slInfo The SidelinkInfo information
      */
-    void ActivateNrSlDrb(uint32_t dstL2Id, bool isTransmit, bool isReceive);
+    void ActivateNrSlDrb(bool isTransmit, bool isReceive, const struct SidelinkInfo& slInfo);
 
     /**
      * \brief set out-of-coverage UE RNTI
@@ -1531,14 +1531,29 @@ class LteUeRrc : public Object
     void SetOutofCovrgUeRnti();
 
     /**
-     * \brief Add Nr sidelink data radio bearer
+     * \brief Add Nr sidelink receive data radio bearer
+     *
+     * \param srcL2Id The sidelink source layer 2 id
+     * \param lcid The logical channel id
+     * \param slInfo The SidelinkInfo information
+     * \return The Sidelink radio bearer information
+     */
+    Ptr<NrSlDataRadioBearerInfo> AddNrSlTxDrb(uint32_t srcL2Id,
+                                              uint8_t lcid,
+                                              const struct SidelinkInfo& slInfo);
+
+    /**
+     * \brief Add Nr sidelink receive data radio bearer
      *
      * \param srcL2Id The sidelink source layer 2 id
      * \param dstL2Id The sidelink destination layer 2 id
      * \param lcid The logical channel id
+     * \param castType The type of communication (tx only)
+     * \param harqEnabled Whether HARQ is enabled (tx only)
+     * \param delayBudget Packet delay budget (tx only)
      * \return The Sidelink radio bearer information
      */
-    Ptr<NrSlDataRadioBearerInfo> AddNrSlDrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid);
+    Ptr<NrSlDataRadioBearerInfo> AddNrSlRxDrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid);
 
     /**
      * \brief Populate NR SL Pool to lower layers
@@ -1559,8 +1574,25 @@ class LteUeRrc : public Object
      * \param lcId logical channel id
      * \param srcL2Id source layer 2 id
      * \param dstL2Id destination layer 2 id
+     * \param castType Cast type
+     * \param harqEnabled whether HARQ was enabled
      */
-    void DoNotifySidelinkReception(uint8_t lcId, uint32_t srcL2Id, uint32_t dstL2Id);
+    void DoNotifySidelinkReception(uint8_t lcId,
+                                   uint32_t srcL2Id,
+                                   uint32_t dstL2Id,
+                                   uint8_t castType,
+                                   bool harqEnabled);
+
+    /**
+     * \brief Finish configuration after adding NR sidelink data radio bearer
+     *
+     * \param slDrbInfo sidelink data radio bearer information
+     * \param lcInfo Logical channel information
+     * \return The Sidelink radio bearer information
+     */
+    Ptr<NrSlDataRadioBearerInfo> FinishSlDrbConfiguration(
+        Ptr<NrSlDataRadioBearerInfo> slDrbInfo,
+        const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& lcInfo);
 
     // NR sidelink SAP
     // LteUeRrc<->NrSlUeRrc

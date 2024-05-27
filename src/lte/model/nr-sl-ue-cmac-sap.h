@@ -19,6 +19,8 @@
 #ifndef NR_SL_UE_CMAC_SAP_H
 #define NR_SL_UE_CMAC_SAP_H
 
+#include "lte-sl-tft.h"
+
 #include <ns3/ptr.h>
 
 #include <limits>
@@ -58,6 +60,12 @@ class NrSlUeCmacSapProvider
         bool isGbr{false}; //!< true if the bearer is GBR, false if the bearer is NON-GBR
         uint64_t mbr{0};   //!< maximum bitrate
         uint64_t gbr{0};   //!< guaranteed bitrate
+        SidelinkInfo::CastType castType{SidelinkInfo::CastType::Invalid}; //!< cast type
+        bool harqEnabled{false}; //!< Whether HARQ is enabled
+        Time pdb;                //!< Packet Delay Budget
+        bool dynamic{false};     //!< flag for whether it is dynamic or SPS
+        Time rri;                //!< Resource Reservation Interval
+        Time t2;                 //!< T2 parameter for selection window
     };
 
     /**
@@ -101,11 +109,11 @@ class NrSlUeCmacSapProvider
     /**
      * \brief Set Sidelink probability resource keep
      *
-     * \param prob Indicates the probability with which the UE keeps the
+     * \param probability Indicates the probability with which the UE keeps the
      *        current resource when the resource reselection counter reaches zero
-     *        for sensing based UE autonomous resource selection (see TS 38.321)
+     *        for semi-persistent scheduling resource selection (see TS 38.321)
      */
-    virtual void SetSlProbResoKeep(double prob) = 0;
+    virtual void SetSlProbResourceKeep(double probability) = 0;
     /**
      * \brief Set the maximum transmission number (including new transmission and
      *        retransmission) for PSSCH.
@@ -126,6 +134,15 @@ class NrSlUeCmacSapProvider
      */
     virtual void AddNrSlRxDstL2Id(uint32_t dstL2Id) = 0;
 };
+
+/**
+ * \brief Stream output operator for SidelinkLogicalChannelInfo
+ * \param os output stream
+ * \param p struct whose parameter to output
+ * \return updated stream
+ */
+std::ostream& operator<<(std::ostream& os,
+                         const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& p);
 
 /**
  * \ingroup lte
@@ -154,7 +171,7 @@ class MemberNrSlUeCmacSapProvider : public NrSlUeCmacSapProvider
     void ResetNrSlLcMap() override;
     void AddNrSlCommTxPool(Ptr<const NrSlCommResourcePool> txPool) override;
     void AddNrSlCommRxPool(Ptr<const NrSlCommResourcePool> rxPool) override;
-    void SetSlProbResoKeep(double prob) override;
+    void SetSlProbResourceKeep(double prob) override;
     void SetSlMaxTxTransNumPssch(uint8_t maxTxPssch) override;
     void SetSourceL2Id(uint32_t srcL2Id) override;
     void AddNrSlRxDstL2Id(uint32_t dstL2Id) override;
@@ -207,9 +224,9 @@ MemberNrSlUeCmacSapProvider<C>::AddNrSlCommRxPool(Ptr<const NrSlCommResourcePool
 
 template <class C>
 void
-MemberNrSlUeCmacSapProvider<C>::SetSlProbResoKeep(double prob)
+MemberNrSlUeCmacSapProvider<C>::SetSlProbResourceKeep(double probability)
 {
-    m_mac->DoSetSlProbResoKeep(prob);
+    m_mac->DoSetSlProbResourceKeep(probability);
 }
 
 template <class C>
@@ -250,8 +267,14 @@ class NrSlUeCmacSapUser
      * \param lcId The logical channel id
      * \param srcL2Id Sidelink source L2 id
      * \param dstL2Id Sidelink destination L2 id
+     * \param castType Cast type
+     * \param harqEnabled whether HARQ is enabled
      */
-    virtual void NotifySidelinkReception(uint8_t lcId, uint32_t srcL2Id, uint32_t dstL2Id) = 0;
+    virtual void NotifySidelinkReception(uint8_t lcId,
+                                         uint32_t srcL2Id,
+                                         uint32_t dstL2Id,
+                                         uint8_t castType,
+                                         bool harqEnabled) = 0;
 
     /**
      * Notify the RRC that the MAC has data to send in the PSSCH
@@ -292,7 +315,11 @@ class MemberNrSlUeCmacSapUser : public NrSlUeCmacSapUser
     MemberNrSlUeCmacSapUser(C* rrc);
 
     // inherited from NrSlUeCmacSapUser
-    void NotifySidelinkReception(uint8_t lcId, uint32_t srcL2Id, uint32_t dstL2Id) override;
+    virtual void NotifySidelinkReception(uint8_t lcId,
+                                         uint32_t srcL2Id,
+                                         uint32_t dstL2Id,
+                                         uint8_t castType,
+                                         bool harqEnabled);
 
   private:
     C* m_rrc; ///< the MAC class
@@ -308,9 +335,11 @@ template <class C>
 void
 MemberNrSlUeCmacSapUser<C>::NotifySidelinkReception(uint8_t lcId,
                                                     uint32_t srcL2Id,
-                                                    uint32_t dstL2Id)
+                                                    uint32_t dstL2Id,
+                                                    uint8_t castType,
+                                                    bool harqEnabled)
 {
-    m_rrc->DoNotifySidelinkReception(lcId, srcL2Id, dstL2Id);
+    m_rrc->DoNotifySidelinkReception(lcId, srcL2Id, dstL2Id, castType, harqEnabled);
 }
 
 } // namespace ns3

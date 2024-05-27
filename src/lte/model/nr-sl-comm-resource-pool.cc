@@ -187,15 +187,99 @@ NrSlCommResourcePool::GetSlResourcePoolNr(uint8_t bwpId, uint16_t poolId) const
     return pool;
 }
 
+bool
+NrSlCommResourcePool::SlotHasPsfch(uint64_t absIndexCurrentSlot,
+                                   uint8_t bwpId,
+                                   uint16_t poolId) const
+{
+    std::vector<std::bitset<1>> phyPool = GetNrSlPhyPool(bwpId, poolId);
+    LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
+    uint8_t psfchPeriod = LteRrcSap::GetSlPsfchPeriodValue(pool.slPsfchConfig.slPsfchPeriod);
+    return SlotHasPsfch(absIndexCurrentSlot, phyPool, psfchPeriod);
+}
+
+bool
+NrSlCommResourcePool::SlotHasPsfch(uint64_t absIndexCurrentSlot,
+                                   std::vector<std::bitset<1>>& phyPool,
+                                   uint8_t psfchPeriod) const
+{
+    if (!psfchPeriod)
+    {
+        return false;
+    }
+
+    // Determine number of SL slots from absIndexCurrentSlot, and if the slot
+    // is a SL slot, we should return true if the number of SL slots is a
+    // multiple of PsfchPeriod slots.
+    // The size of phyPool (calculated elsewhere) is large enough to repeat the
+    // SL pattern (i.e., the overall SL pattern is repeated each phyPool slots).
+    // The PSFCH pattern repeats at least every (psfchPeriod * phyPool.size ())
+    // slots (i.e., psfchPeriod * phyPool.size () is the modulus).  We'll
+    // call this modulus value the 'period' below.
+    uint64_t numSlSlots = 0; // number of SL slots before absIndexCurrentSlot
+    uint16_t period = psfchPeriod * phyPool.size();
+    // The number of periods before the current period is
+    // absIndexCurrentSlot / modulus.  We do not need to count SL slots in
+    // these earlier periods because the number of SL slots will always be
+    // a multiple of psfchPeriod.  We only need to look at the remainder
+    // (modulus) of the division absIndexCurrentSlot / period;
+    uint64_t numSlotsIntoCurrentPeriod = absIndexCurrentSlot % period;
+    bool reachedLimit = false; // Used to break out of outer for loop
+    bool currentSlotIsSlSlot = false;
+    for (uint16_t i = 0; i < psfchPeriod && !reachedLimit; i++)
+    {
+        for (uint32_t j = 0; j < phyPool.size(); j++)
+        {
+            numSlSlots += (phyPool[j] == 1 ? 1 : 0);
+            currentSlotIsSlSlot = (phyPool[j] == 1);
+            if ((i * phyPool.size()) + j == numSlotsIntoCurrentPeriod)
+            {
+                reachedLimit = true;
+                break;
+            }
+        }
+    }
+    bool hasPsfch = currentSlotIsSlSlot && ((numSlSlots % psfchPeriod) == 0);
+    NS_LOG_DEBUG("NumSlSlots " << numSlSlots << " Absolute slot number " << absIndexCurrentSlot
+                               << " hasPsfch: " << hasPsfch);
+    return hasPsfch;
+}
+
+uint8_t
+NrSlCommResourcePool::GetMinTimeGapPsfch(uint8_t bwpId, uint16_t poolId) const
+{
+    LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
+    return LteRrcSap::GetSlMinTimeGapPsfchValue(pool.slPsfchConfig.slMinTimeGapPsfch);
+}
+
+uint8_t
+NrSlCommResourcePool::GetPsfchPeriod(uint8_t bwpId, uint16_t poolId) const
+{
+    LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
+    return LteRrcSap::GetSlPsfchPeriodValue(pool.slPsfchConfig.slPsfchPeriod);
+}
+
+uint16_t
+NrSlCommResourcePool::GetT2Min(uint8_t bwpId, uint16_t poolId, uint16_t numerology) const
+{
+    std::vector<std::bitset<1>> phyPool = GetNrSlPhyPool(bwpId, poolId);
+    const LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
+    // t2_min as a function of numerology. Discussed in 3GPP meeting R1-2003807
+    // also in TS 38.331 in SL-UE-SelectedConfigRP field descriptions
+    uint16_t t2min = LteRrcSap::GetSlSelWindowValue(pool.slUeSelectedConfigRp.slSelectionWindow);
+    t2min = t2min * static_cast<uint16_t>(std::pow(2, numerology));
+    return t2min;
+}
+
 std::list<NrSlCommResourcePool::SlotInfo>
-NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurretSlot,
+NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurrentSlot,
                                                uint8_t bwpId,
                                                uint16_t numerology,
                                                uint16_t poolId,
                                                uint8_t t1,
                                                uint16_t t2) const
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << absIndexCurrentSlot << +bwpId << numerology << poolId << +t1 << t2);
     std::vector<std::bitset<1>> phyPool = GetNrSlPhyPool(bwpId, poolId);
     const LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr(bwpId, poolId);
 
@@ -223,8 +307,8 @@ NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurretSlot,
     // take t2 as it is without checking if it is lower than packet budget or not
     uint16_t t2Final = t2;
 
-    uint64_t firstAbsSlotIndex = absIndexCurretSlot + t1;
-    uint64_t lastAbsSlotIndex = absIndexCurretSlot + t2Final;
+    uint64_t firstAbsSlotIndex = absIndexCurrentSlot + t1;
+    uint64_t lastAbsSlotIndex = absIndexCurrentSlot + t2Final;
 
     NS_LOG_DEBUG("Starting absolute slot number of the selection window = " << firstAbsSlotIndex);
     NS_LOG_DEBUG("Last absolute slot number of the selection window =  " << lastAbsSlotIndex);
@@ -233,11 +317,12 @@ NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurretSlot,
 
     std::list<NrSlCommResourcePool::SlotInfo> list;
     uint16_t absPoolIndex = firstAbsSlotIndex % phyPool.size();
+    uint8_t psfchPeriod = LteRrcSap::GetSlPsfchPeriodValue(pool.slPsfchConfig.slPsfchPeriod);
     NS_LOG_DEBUG("Absolute pool index = " << absPoolIndex);
 
     for (uint64_t i = firstAbsSlotIndex; i <= lastAbsSlotIndex; ++i)
     {
-        if (phyPool[absPoolIndex] == 1)
+        if (phyPool[absPoolIndex] == 1) // slot is a sidelink slot
         {
             // PSCCH
             uint16_t numSlPscchRbs =
@@ -247,18 +332,29 @@ NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurretSlot,
                 LteRrcSap::GetSlTResoPscchValue(pool.slPscchConfig.slTimeResourcePscch);
             // PSSCH
             uint16_t slPsschSymStart = slPscchSymStart + slPscchSymLength;
-            uint16_t slPsschSymLength = (totalSlSymbols - slPscchSymLength) - 1;
+            bool slHasPsfch = SlotHasPsfch(i, phyPool, psfchPeriod);
+            uint16_t slPsschSymLength;
+            if (slHasPsfch)
+            {
+                // PSFCH requires an additional 3 symbols
+                slPsschSymLength = (totalSlSymbols - slPscchSymLength) - 1 - 3;
+            }
+            else
+            {
+                slPsschSymLength = (totalSlSymbols - slPscchSymLength) - 1;
+            }
             uint16_t slSubchannelSize = LteRrcSap::GetNrSlSubChSizeValue(pool.slSubchannelSize);
             uint16_t slMaxNumPerReserve =
                 LteRrcSap::GetSlMaxNumPerReserveValue(pool.slUeSelectedConfigRp.slMaxNumPerReserve);
             uint64_t absSlotIndex = i;
-            auto slotOffset = static_cast<uint32_t>(i - absIndexCurretSlot);
+            auto slotOffset = static_cast<uint32_t>(i - absIndexCurrentSlot);
 
             NrSlCommResourcePool::SlotInfo info(numSlPscchRbs,
                                                 slPscchSymStart,
                                                 slPscchSymLength,
                                                 slPsschSymStart,
                                                 slPsschSymLength,
+                                                slHasPsfch,
                                                 slSubchannelSize,
                                                 slMaxNumPerReserve,
                                                 absSlotIndex,
@@ -274,7 +370,7 @@ NrSlCommResourcePool::GetNrSlCommOpportunities(uint64_t absIndexCurretSlot,
     for (const auto& it : list)
     {
         NS_LOG_DEBUG("Absolute slot number of the Sidelink slot in the selection window = "
-                     << it.slotOffset + absIndexCurretSlot);
+                     << it.slotOffset + absIndexCurrentSlot);
     }
 
     return list;

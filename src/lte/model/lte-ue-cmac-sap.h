@@ -20,6 +20,8 @@
 #ifndef LTE_UE_CMAC_SAP_H
 #define LTE_UE_CMAC_SAP_H
 
+#include "lte-sl-tft.h"
+
 #include <ns3/packet.h>
 
 namespace ns3
@@ -76,10 +78,11 @@ class LteUeCmacSapProvider
     /// LogicalChannelConfig structure
     struct LogicalChannelConfig
     {
-        uint8_t priority;                ///< priority
-        uint16_t prioritizedBitRateKbps; ///< prioritize bit rate Kbps
-        uint16_t bucketSizeDurationMs;   ///< bucket size duration ms
-        uint8_t logicalChannelGroup;     ///< logical channel group
+        uint8_t priority;                 ///< priority
+        uint16_t prioritizedBitRateKbps;  ///< prioritize bit rate Kbps
+        uint16_t bucketSizeDurationMs;    ///< bucket size duration ms
+        uint8_t logicalChannelGroup;      ///< logical channel group
+        struct SidelinkInfo sidelinkInfo; ///< sidelink information
     };
 
     /**

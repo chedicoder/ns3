@@ -20,6 +20,8 @@
 #ifndef LTE_AS_SAP_H
 #define LTE_AS_SAP_H
 
+#include "lte-sl-tft.h"
+
 #include <ns3/packet.h>
 #include <ns3/ptr.h>
 
@@ -92,23 +94,22 @@ class LteAsSapProvider
      *
      * Tells the RRC to activate NR Sidelink Bearer
      *
-     * \param dstL2Id The remote layer 3 id
      * \param isTransmit True if the bearer is for transmission
      * \param isReceive True if the bearer is for reception
-     * \param isUnicast True if the bearer is for unicast communication
+     * \param slInfo The SidelinkInfo for the bearer
      */
-    virtual void ActivateNrSlRadioBearer(uint32_t dstL2Id,
-                                         bool isTransmit,
+    virtual void ActivateNrSlRadioBearer(bool isTransmit,
                                          bool isReceive,
-                                         bool isUnicast) = 0;
+                                         const SidelinkInfo& slInfo) = 0;
 
     /**
      * \brief Send sidelink data packet to RRC.
      *
      * \param packet The packet
      * \param dstL2Id The destination layer 2 id
+     * \param lcId The logical channel id
      */
-    virtual void SendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id) = 0;
+    virtual void SendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id, uint8_t lcId) = 0;
 };
 
 /**
@@ -149,9 +150,9 @@ class LteAsSapUser
     /**
      * \brief Notify the NAS that the NR sidelink has been setup
      *
-     * \param dstL2Id The destination layer 2 id
+     * \param slInfo The SidelinkInfo for the bearer
      */
-    virtual void NotifyNrSlRadioBearerActivated(uint32_t dstL2Id) = 0;
+    virtual void NotifyNrSlRadioBearerActivated(const struct SidelinkInfo& slInfo) = 0;
 };
 
 /**
@@ -179,11 +180,10 @@ class MemberLteAsSapProvider : public LteAsSapProvider
     void Connect() override;
     void SendData(Ptr<Packet> packet, uint8_t bid) override;
     void Disconnect() override;
-    void ActivateNrSlRadioBearer(uint32_t dstL2Id,
-                                 bool isTransmit,
+    void ActivateNrSlRadioBearer(bool isTransmit,
                                  bool isReceive,
-                                 bool isUnicast) override;
-    void SendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id) override;
+                                 const struct SidelinkInfo& slInfo) override;
+    void SendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id, uint8_t lcId) override;
 
   private:
     C* m_owner; ///< the owner class
@@ -239,19 +239,18 @@ MemberLteAsSapProvider<C>::Disconnect()
 
 template <class C>
 void
-MemberLteAsSapProvider<C>::ActivateNrSlRadioBearer(uint32_t dstL2Id,
-                                                   bool isTransmit,
+MemberLteAsSapProvider<C>::ActivateNrSlRadioBearer(bool isTransmit,
                                                    bool isReceive,
-                                                   bool isUnicast)
+                                                   const struct SidelinkInfo& slInfo)
 {
-    m_owner->DoActivateNrSlRadioBearer(dstL2Id, isTransmit, isReceive, isUnicast);
+    m_owner->DoActivateNrSlRadioBearer(isTransmit, isReceive, slInfo);
 }
 
 template <class C>
 void
-MemberLteAsSapProvider<C>::SendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id)
+MemberLteAsSapProvider<C>::SendSidelinkData(Ptr<Packet> packet, uint32_t dstL2Id, uint8_t lcId)
 {
-    m_owner->DoSendSidelinkData(packet, dstL2Id);
+    m_owner->DoSendSidelinkData(packet, dstL2Id, lcId);
 }
 
 /**
@@ -277,7 +276,7 @@ class MemberLteAsSapUser : public LteAsSapUser
     void NotifyConnectionFailed() override;
     void RecvData(Ptr<Packet> packet) override;
     void NotifyConnectionReleased() override;
-    void NotifyNrSlRadioBearerActivated(uint32_t dstL2Id) override;
+    void NotifyNrSlRadioBearerActivated(const struct SidelinkInfo& slInfo) override;
 
   private:
     C* m_owner; ///< the owner class
@@ -319,9 +318,9 @@ MemberLteAsSapUser<C>::NotifyConnectionReleased()
 
 template <class C>
 void
-MemberLteAsSapUser<C>::NotifyNrSlRadioBearerActivated(uint32_t dstL2Id)
+MemberLteAsSapUser<C>::NotifyNrSlRadioBearerActivated(const struct SidelinkInfo& slInfo)
 {
-    m_owner->DoNotifyNrSlRadioBearerActivated(dstL2Id);
+    m_owner->DoNotifyNrSlRadioBearerActivated(slInfo);
 }
 
 } // namespace ns3

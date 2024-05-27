@@ -22,6 +22,10 @@
 #include "lte-as-sap.h"
 #include "lte-sl-tft.h"
 
+#include "ns3/tcp-header.h"
+#include "ns3/tcp-l4-protocol.h"
+#include "ns3/udp-header.h"
+#include "ns3/udp-l4-protocol.h"
 #include <ns3/epc-helper.h>
 #include <ns3/fatal-error.h>
 #include <ns3/ipv4-header.h>
@@ -209,31 +213,65 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
     switch (m_state)
     {
     case ACTIVE: {
-        // First Check if there is any sidelink bearer for the destination
-        // otherwise it may use the default bearer, if exists
         Ptr<Packet> pCopy = packet->Copy();
         if (protocolNumber == Ipv4L3Protocol::PROT_NUMBER)
         {
             Ipv4Header ipv4Header;
             pCopy->RemoveHeader(ipv4Header);
+            uint8_t protocol = ipv4Header.GetProtocol();
+            uint16_t remotePort = 0;
+            if (protocol == UdpL4Protocol::PROT_NUMBER)
+            {
+                UdpHeader udpHeader;
+                pCopy->RemoveHeader(udpHeader);
+                remotePort = udpHeader.GetDestinationPort();
+            }
+            else if (protocol == TcpL4Protocol::PROT_NUMBER)
+            {
+                TcpHeader tcpHeader;
+                pCopy->RemoveHeader(tcpHeader);
+                remotePort = tcpHeader.GetDestinationPort();
+            }
+            // First Check if there is any sidelink bearer for the destination
+            // otherwise it may use the default bearer, if exists
             for (auto it = m_slBearersActivatedList.begin(); it != m_slBearersActivatedList.end();
                  it++)
             {
-                if ((*it)->Matches(ipv4Header.GetDestination()))
+                if ((*it)->Matches(ipv4Header.GetDestination(), remotePort))
                 {
                     // Found sidelink
-                    m_asSapProvider->SendSidelinkData(packet, (*it)->GetDstL2Id());
+                    NS_LOG_INFO("Found matching TFT for "
+                                << ipv4Header.GetDestination() << ":" << remotePort
+                                << " with dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
+                    m_asSapProvider->SendSidelinkData(packet,
+                                                      (*it)->GetSidelinkInfo().m_dstL2Id,
+                                                      (*it)->GetSidelinkInfo().m_lcId);
                     return true;
+                }
+                else
+                {
+                    NS_LOG_DEBUG("TFT is not a match for "
+                                 << ipv4Header.GetDestination() << ":" << remotePort
+                                 << " ; bearer has dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
                 }
             }
             // check if pending
             for (auto it = m_pendingSlBearersList.begin(); it != m_pendingSlBearersList.end(); it++)
             {
-                if ((*it)->Matches(ipv4Header.GetDestination()))
+                if ((*it)->Matches(ipv4Header.GetDestination(), remotePort))
                 {
-                    NS_LOG_WARN(this
-                                << "Matching sidelink bearer still pending, discarding packet");
+                    NS_LOG_WARN("Matching sidelink bearer still pending, discarding packet");
+                    // TODO: Add drop trace?
                     return false;
+                }
+                else
+                {
+                    NS_LOG_DEBUG("Pending bearer is not a match for "
+                                 << ipv4Header.GetDestination() << ":" << remotePort
+                                 << " ; bearer has dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
                 }
             }
         }
@@ -241,23 +279,51 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
         {
             Ipv6Header ipv6Header;
             pCopy->RemoveHeader(ipv6Header);
+            uint8_t protocol = ipv6Header.GetNextHeader();
+            uint16_t remotePort = 0;
+            if (protocol == UdpL4Protocol::PROT_NUMBER)
+            {
+                UdpHeader udpHeader;
+                pCopy->RemoveHeader(udpHeader);
+                remotePort = udpHeader.GetDestinationPort();
+            }
+            else if (protocol == TcpL4Protocol::PROT_NUMBER)
+            {
+                TcpHeader tcpHeader;
+                pCopy->RemoveHeader(tcpHeader);
+                remotePort = tcpHeader.GetDestinationPort();
+            }
+
             for (auto it = m_slBearersActivatedList.begin(); it != m_slBearersActivatedList.end();
                  it++)
             {
-                if ((*it)->Matches(ipv6Header.GetDestination()))
+                if ((*it)->Matches(ipv6Header.GetDestination(), remotePort))
                 {
                     // Found sidelink
-                    m_asSapProvider->SendSidelinkData(packet, (*it)->GetDstL2Id());
+                    NS_LOG_INFO("Found matching TFT for "
+                                << ipv6Header.GetDestination() << ":" << remotePort
+                                << " with dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
+                    m_asSapProvider->SendSidelinkData(packet,
+                                                      (*it)->GetSidelinkInfo().m_dstL2Id,
+                                                      (*it)->GetSidelinkInfo().m_lcId);
                     return true;
+                }
+                else
+                {
+                    NS_LOG_DEBUG("TFT is not a match for "
+                                 << ipv6Header.GetDestination() << ":" << remotePort
+                                 << " with dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
                 }
             }
             // check if pending
             for (auto it = m_pendingSlBearersList.begin(); it != m_pendingSlBearersList.end(); it++)
             {
-                if ((*it)->Matches(ipv6Header.GetDestination()))
+                if ((*it)->Matches(ipv6Header.GetDestination(), remotePort))
                 {
-                    NS_LOG_WARN(this
-                                << "Matching sidelink bearer still pending, discarding packet");
+                    NS_LOG_WARN("Matching sidelink bearer still pending, discarding packet");
+                    // TODO: Add drop trace?
                     return false;
                 }
             }
@@ -269,6 +335,7 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
         auto bid = (uint8_t)(id & 0x000000FF);
         if (bid == 0)
         {
+            // TODO: Add drop trace?
             return false;
         }
         else
@@ -285,14 +352,41 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
         {
             Ipv4Header ipv4Header;
             pCopy->RemoveHeader(ipv4Header);
+            uint8_t protocol = ipv4Header.GetProtocol();
+            uint16_t remotePort = 0;
+            if (protocol == UdpL4Protocol::PROT_NUMBER)
+            {
+                UdpHeader udpHeader;
+                pCopy->RemoveHeader(udpHeader);
+                remotePort = udpHeader.GetDestinationPort();
+            }
+            else if (protocol == TcpL4Protocol::PROT_NUMBER)
+            {
+                TcpHeader tcpHeader;
+                pCopy->RemoveHeader(tcpHeader);
+                remotePort = tcpHeader.GetDestinationPort();
+            }
             for (auto it = m_slBearersActivatedList.begin(); it != m_slBearersActivatedList.end();
                  it++)
             {
-                if ((*it)->Matches(ipv4Header.GetDestination()))
+                if ((*it)->Matches(ipv4Header.GetDestination(), remotePort))
                 {
                     // Found sidelink
-                    m_asSapProvider->SendSidelinkData(packet, (*it)->GetDstL2Id());
+                    NS_LOG_INFO("Found matching TFT for "
+                                << ipv4Header.GetDestination() << ":" << remotePort
+                                << " with dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
+                    m_asSapProvider->SendSidelinkData(packet,
+                                                      (*it)->GetSidelinkInfo().m_dstL2Id,
+                                                      (*it)->GetSidelinkInfo().m_lcId);
                     return true;
+                }
+                else
+                {
+                    NS_LOG_DEBUG("Did not find matching TFT for "
+                                 << ipv4Header.GetDestination() << ":" << remotePort
+                                 << " bearer dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
                 }
             }
         }
@@ -300,23 +394,52 @@ EpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
         {
             Ipv6Header ipv6Header;
             pCopy->RemoveHeader(ipv6Header);
+            uint8_t protocol = ipv6Header.GetNextHeader();
+            uint16_t remotePort = 0;
+            if (protocol == UdpL4Protocol::PROT_NUMBER)
+            {
+                UdpHeader udpHeader;
+                pCopy->RemoveHeader(udpHeader);
+                remotePort = udpHeader.GetDestinationPort();
+            }
+            else if (protocol == TcpL4Protocol::PROT_NUMBER)
+            {
+                TcpHeader tcpHeader;
+                pCopy->RemoveHeader(tcpHeader);
+                remotePort = tcpHeader.GetDestinationPort();
+            }
+
             for (auto it = m_slBearersActivatedList.begin(); it != m_slBearersActivatedList.end();
                  it++)
             {
-                if ((*it)->Matches(ipv6Header.GetDestination()))
+                if ((*it)->Matches(ipv6Header.GetDestination(), remotePort))
                 {
+                    NS_LOG_INFO("Found matching TFT for "
+                                << ipv6Header.GetDestination() << ":" << remotePort
+                                << " with dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
                     // Found sidelink
-                    m_asSapProvider->SendSidelinkData(packet, (*it)->GetDstL2Id());
+                    m_asSapProvider->SendSidelinkData(packet,
+                                                      (*it)->GetSidelinkInfo().m_dstL2Id,
+                                                      (*it)->GetSidelinkInfo().m_lcId);
                     return true;
+                }
+                else
+                {
+                    NS_LOG_DEBUG("Did not find matching TFT for "
+                                 << ipv6Header.GetDestination() << ":" << remotePort
+                                 << " bearer dstL2Id " << (*it)->GetSidelinkInfo().m_dstL2Id
+                                 << " LC ID " << +(*it)->GetSidelinkInfo().m_lcId);
                 }
             }
         }
     }
     default:
-        NS_LOG_WARN(
-            this << " NAS neither OFF nor ACTIVE, or Sidelink bearer not found, discarding packet");
+        NS_LOG_WARN("NAS neither OFF nor ACTIVE, or Sidelink bearer not found, discarding packet");
+        // TODO:  Add drop trace?
         return false;
     }
+    // TODO: Check that all paths that return false also hit a drop trace somehow
 }
 
 void
@@ -404,28 +527,30 @@ EpcUeNas::SwitchToState(State newState)
 void
 EpcUeNas::ActivateNrSlBearer(Ptr<LteSlTft> tft)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << tft->GetSidelinkInfo().m_lcId << tft->GetSidelinkInfo().m_dynamic);
     // regardless of the state we need to request RRC to setup the bearer
     // for in coverage case, it will trigger communication with the gNodeb
     // for out of coverage, it will trigger the use of preconfiguration
     m_pendingSlBearersList.push_back(tft);
-    m_asSapProvider->ActivateNrSlRadioBearer(tft->GetDstL2Id(),
-                                             tft->isTransmit(),
-                                             tft->isReceive(),
-                                             tft->isUnicast());
+    m_asSapProvider->ActivateNrSlRadioBearer(tft->IsTransmit(),
+                                             tft->IsReceive(),
+                                             tft->GetSidelinkInfo());
 }
 
 void
-EpcUeNas::DoNotifyNrSlRadioBearerActivated(uint32_t dstL2Id)
+EpcUeNas::DoNotifyNrSlRadioBearerActivated(const struct SidelinkInfo& slInfo)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << slInfo.m_dstL2Id << +slInfo.m_lcId);
 
     auto it = m_pendingSlBearersList.begin();
     while (it != m_pendingSlBearersList.end())
     {
-        if ((*it)->GetDstL2Id() == dstL2Id)
+        if ((*it)->GetSidelinkInfo().m_dstL2Id == slInfo.m_dstL2Id)
         {
             // Found sidelink
+            NS_LOG_LOGIC("Found pending SL bearer for dstL2Id " << slInfo.m_dstL2Id << " lcId "
+                                                                << +slInfo.m_lcId);
+            (*it)->SetSidelinkInfoLcId(slInfo.m_lcId);
             m_slBearersActivatedList.push_back(*it);
             it = m_pendingSlBearersList.erase(it);
         }

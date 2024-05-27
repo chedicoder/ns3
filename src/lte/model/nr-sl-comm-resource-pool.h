@@ -49,16 +49,17 @@ class NrSlCommResourcePool : public Object
          * the total number of symbols available for sidelink PSCCH \param slPsschSymStart Indicates
          * the starting symbol used for sidelink PSSCH in a slot \param slPsschSymLength Indicates
          * the total number of symbols available for sidelink PSSCH \param slSubchannelSize
-         * Indicates the subchannel size in number of RBs \param slMaxNumPerReserve Indicates the
-         * maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI. \param
-         * absSlotIndex Indicates the the absolute slot index \param slotOffset Indicates the
-         * positive offset between two slots
+         * Indicates the subchannel size in number of RBs \param slHasPsfch Indicates whether PSFCH
+         * is present in the slot \param slMaxNumPerReserve Indicates the maximum number of reserved
+         * PSCCH/PSSCH resources that can be indicated by an SCI. \param absSlotIndex Indicates the
+         * the absolute slot index \param slotOffset Indicates the positive offset between two slots
          */
         SlotInfo(uint16_t numSlPscchRbs,
                  uint16_t slPscchSymStart,
                  uint16_t slPscchSymLength,
                  uint16_t slPsschSymStart,
                  uint16_t slPsschSymLength,
+                 bool slHasPsfch,
                  uint16_t slSubchannelSize,
                  uint16_t slMaxNumPerReserve,
                  uint64_t absSlotIndex,
@@ -69,6 +70,7 @@ class NrSlCommResourcePool : public Object
             this->slPscchSymLength = slPscchSymLength;
             this->slPsschSymStart = slPsschSymStart;
             this->slPsschSymLength = slPsschSymLength;
+            this->slHasPsfch = slHasPsfch;
             this->slSubchannelSize = slSubchannelSize;
             this->slMaxNumPerReserve = slMaxNumPerReserve;
             this->absSlotIndex = absSlotIndex;
@@ -88,6 +90,7 @@ class NrSlCommResourcePool : public Object
             0}; //!< Indicates the starting symbol used for sidelink PSSCH in a slot
         uint16_t slPsschSymLength{
             0}; //!< Indicates the total number of symbols available for sidelink PSSCH
+        bool slHasPsfch{false}; //!< Indicates whether PSFCH is present in the slot
         // subchannel size in RBs
         uint16_t slSubchannelSize{0};   //!< Indicates the subchannel size in number of RBs
         uint16_t slMaxNumPerReserve{0}; //!< The maximum number of reserved PSCCH/PSSCH resources
@@ -169,6 +172,17 @@ class NrSlCommResourcePool : public Object
      * \param phySlPoolMap The Map containing the physical SL pool per BWP and per SL pool
      */
     void SetNrSlPhysicalPoolMap(NrSlCommResourcePool::PhySlPoolMap phySlPoolMap);
+    /**
+     * \brief Get NR Sidelink T2min parameter (in slots)
+     * This value derives from the SelectionWindow value configured in
+     * SL-UE-SelectedConfigRP, and scaled by the numerology.
+     *
+     * \param bwpId The bandwidth part id
+     * \param poolId The pool id
+     * \param numerology The numerology
+     * \return The value of T2min in slots
+     */
+    uint16_t GetT2Min(uint8_t bwpId, uint16_t poolId, uint16_t numerology) const;
     /**
      * \brief Get NR Sidelink physical sidelink pool
      *
@@ -297,6 +311,37 @@ class NrSlCommResourcePool : public Object
      */
     uint16_t GetSlSubChSize(uint8_t bwpId, uint16_t poolId) const;
 
+    /**
+     * \brief Check if slot indexed by absIndexCurrentSlot is a slot with PSFCH
+     *
+     * This method checks whether a SL slot is configured for PSFCH, based on
+     * the value of slPsfchPeriod configured in the resource pool.
+     *
+     * \param absIndexCurrentSlot absolute slot count from simulation time 0
+     * \param bwpId bandwidth part ID (to identify the pool)
+     * \param poolId pool ID
+     * \return true if the indicated slot has PSFCH, false otherwise
+     */
+    bool SlotHasPsfch(uint64_t absIndexCurrentSlot, uint8_t bwpId, uint16_t poolId) const;
+
+    /**
+     * Return the MinTimeGapPsfch associated with the BWP and pool
+     *
+     * \param bwpId bandwidth part ID (to identify the pool)
+     * \param poolId pool ID
+     * \return value of the MinTimeGapPsfch, in slots
+     */
+    uint8_t GetMinTimeGapPsfch(uint8_t bwpId, uint16_t poolId) const;
+
+    /**
+     * Return the PsfchPeriod associated with the BWP and pool
+     *
+     * \param bwpId bandwidth part ID (to identify the pool)
+     * \param poolId pool ID
+     * \return value of the PsfchPeriod, in slots
+     */
+    uint8_t GetPsfchPeriod(uint8_t bwpId, uint16_t poolId) const;
+
   private:
     /**
      * \brief Get SlResourcePoolNr
@@ -322,6 +367,26 @@ class NrSlCommResourcePool : public Object
      * \param rsvpInSlots The resource reservation period in slots
      */
     void IsRsvpMultipOfPoolLen(uint8_t bwpId, uint16_t poolId, uint16_t rsvpInSlots) const;
+
+    /**
+     * \brief Check if slot indexed by absIndexCurrentSlot is a slot with PSFCH
+     *
+     * This method checks whether a SL slot is configured for PSFCH, based on
+     * the value of slPsfchPeriod configured in the resource pool.
+     *
+     * This is a lower-level (private) method that is called by the public
+     * variant of this method, for cases in which the phyPool and psfchPeriod
+     * don't need to be repeatedly fetched.
+     *
+     * \param absIndexCurrentSlot absolute slot count from simulation time 0
+     * \param phyPool PHY pool bitmap indicating the SL slots in a pool
+     * \param psfchPerio the slPsfchPeriod value (0, 1, 2, or 4)
+     *
+     * \return true if the indicated slot has PSFCH, false otherwise
+     */
+    bool SlotHasPsfch(uint64_t absIndexCurrentSlot,
+                      std::vector<std::bitset<1>>& phyPool,
+                      uint8_t psfchPeriod) const;
 
     std::array<LteRrcSap::SlFreqConfigCommonNr, MAX_NUM_OF_FREQ_SL>
         m_slPreconfigFreqInfoList; //!< A list containing per carrier configuration for NR sidelink
