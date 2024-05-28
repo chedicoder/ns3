@@ -263,6 +263,12 @@ LteUeRrc::GetTypeId()
                 UintegerValue(2), // see 3GPP 36.331 UE-TimersAndConstants & RLF-TimersAndConstants
                 MakeUintegerAccessor(&LteUeRrc::m_n311),
                 MakeUintegerChecker<uint8_t>(1, 10))
+            .AddAttribute(
+                "SignallingPacketDelayBudget",
+                "Packet Delay Budget to use for signalling LC",
+                TimeValue(MilliSeconds(20)), // Magic number; not in standard
+                MakeTimeAccessor(&LteUeRrc::m_signallingPdb),
+                MakeTimeChecker())
             .AddTraceSource("MibReceived",
                             "trace fired upon reception of Master Information Block",
                             MakeTraceSourceAccessor(&LteUeRrc::m_mibReceivedTrace),
@@ -3715,7 +3721,15 @@ LteUeRrc::DoNotifySidelinkReception(uint8_t lcId,
     if (lcId < 4)
     {
         // SL-SRB
-        Ptr<NrSlSignallingRadioBearerInfo> slbInfo = AddNrSlSrb(srcL2Id, dstL2Id, lcId);
+        struct SidelinkInfo slInfo;
+        slInfo.m_srcL2Id = srcL2Id;
+        slInfo.m_dstL2Id = dstL2Id;
+        slInfo.m_lcId = lcId;
+        slInfo.m_castType = static_cast<SidelinkInfo::CastType>(castType);
+        slInfo.m_dynamic = true;
+        slInfo.m_pdb = m_signallingPdb;
+        slInfo.m_priority = 1; // SL-SRBs have priority 1 (TS 38.331 9.1.1.4)
+        Ptr<NrSlSignallingRadioBearerInfo> slbInfo = AddNrSlSrb(srcL2Id, slInfo);
         NS_LOG_INFO("Created new RX SL-SRB for dstL2Id "
                     << dstL2Id << " LCID=" << (slbInfo->m_logicalChannelIdentity & 0xF));
     }
@@ -4111,8 +4125,7 @@ LteUeRrc::ActivateNrSlSrb(const struct SidelinkInfo& slInfo)
         {
             SetOutofCovrgUeRnti();
         }
-
-        slSrb = AddNrSlSrb(m_srcL2Id, slInfo.m_dstL2Id, slInfo.m_lcId);
+        slSrb = AddNrSlSrb(m_srcL2Id, slInfo);
         NS_LOG_INFO("Inserted, dstL2Id "
                     << slSrb->m_destinationL2Id << " lcId "
                     << (uint32_t)slSrb->m_logicalChannelIdentity << " lcGroup "
@@ -4149,7 +4162,7 @@ LteUeRrc::ActivateNrSlSrb(const struct SidelinkInfo& slInfo)
         }
 
         // We use same SL-SRB creation and configuration logic as OOC
-        slSrb = AddNrSlSrb(m_srcL2Id, slInfo.m_dstL2Id, slInfo.m_lcId);
+        slSrb = AddNrSlSrb(m_srcL2Id, slInfo);
         NS_LOG_INFO("Inserted, dstL2Id "
                     << slSrb->m_destinationL2Id << " lcId "
                     << (uint32_t)slSrb->m_logicalChannelIdentity << " lcGroup "
@@ -4164,18 +4177,24 @@ LteUeRrc::ActivateNrSlSrb(const struct SidelinkInfo& slInfo)
 }
 
 Ptr<NrSlSignallingRadioBearerInfo>
-LteUeRrc::AddNrSlSrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid)
+LteUeRrc::AddNrSlSrb(uint32_t srcL2Id, const struct SidelinkInfo& slInfo)
 {
     NS_LOG_FUNCTION(this);
 
-    NS_ABORT_MSG_IF((srcL2Id == 0 || dstL2Id == 0),
+    NS_ABORT_MSG_IF((srcL2Id == 0 || slInfo.m_dstL2Id == 0),
                     "Layer 2 source or destination Id shouldn't be 0");
 
     NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo;
     lcInfo.srcL2Id = srcL2Id;
-    lcInfo.dstL2Id = dstL2Id;
-    lcInfo.lcId = lcid;
+    lcInfo.dstL2Id = slInfo.m_dstL2Id;
+    lcInfo.lcId = slInfo.m_lcId;
     lcInfo.lcGroup = 0; // SL-SRBs belong to lcGroup 0 (TS 38.331 9.1.1.4)
+    lcInfo.pdb = slInfo.m_pdb;
+    lcInfo.dynamic = slInfo.m_dynamic;
+    lcInfo.rri = slInfo.m_rri;
+    lcInfo.harqEnabled = slInfo.m_harqEnabled;
+    lcInfo.castType = slInfo.m_castType;
+    lcInfo.t2 = slInfo.m_t2;
     // following parameters have no impact at the moment
     lcInfo.priority = 1; // SL-SRBs have priority 1 (TS 38.331 9.1.1.4)
     lcInfo.pqi = 65;
@@ -4399,7 +4418,7 @@ LteUeRrc::AddNrSlDiscoveryRb(uint32_t srcL2Id, uint32_t dstL2Id)
     lcInfo.castType = SidelinkInfo::CastType::Unicast;
     lcInfo.harqEnabled = false;
     lcInfo.dynamic = true;
-    lcInfo.pdb = MilliSeconds(20);
+    lcInfo.pdb = m_signallingPdb;
 
     Ptr<NrSlDiscoveryRadioBearerInfo> slDiscRbInfo = CreateObject<NrSlDiscoveryRadioBearerInfo>();
     slDiscRbInfo->m_sourceL2Id = lcInfo.srcL2Id;

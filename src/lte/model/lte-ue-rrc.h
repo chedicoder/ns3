@@ -880,6 +880,8 @@ class LteUeRrc : public Object
     uint32_t m_ulEarfcn;                                     /**< Uplink carrier frequency. */
     std::list<LteRrcSap::SCellToAddMod> m_sCellToAddModList; /**< Secondary carriers. */
 
+    Time m_signallingPdb; /**< Packet delay budget for signalling LCs */
+
     /**
      * The `MibReceived` trace source. Fired upon reception of Master Information
      * Block. Exporting IMSI, the serving cell ID, RNTI, and the source cell ID.
@@ -1699,11 +1701,12 @@ class LteUeRrc : public Object
      * \brief Create and store an NR sidelink signalling radio bearer (SL-SRB)
      *
      * \param srcL2Id The sidelink source layer 2 id
-     * \param dstL2Id The sidelink destination layer 2 id
-     * \param lcId the logical channel ID of the logical channel of the sidelink
+     * \param slInfo The SidelinkInfo containing the peer dstL2Id and the
+     *        logical channel ID of the bearer to be activated
      * \return The Sidelink radio bearer information
      */
-    Ptr<NrSlSignallingRadioBearerInfo> AddNrSlSrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid);
+    Ptr<NrSlSignallingRadioBearerInfo> AddNrSlSrb(uint32_t srcL2Id,
+                                                  const struct SidelinkInfo& slInfo);
 
     // NrSlUeSvcRrcSapProvider methods
     /**
