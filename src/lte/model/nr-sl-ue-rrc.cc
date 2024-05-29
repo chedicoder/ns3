@@ -362,6 +362,31 @@ NrSlUeRrc::GetSidelinkTxDataRadioBearer(uint32_t srcL2Id, uint32_t dstL2Id, uint
     return lcIt->second;
 }
 
+std::unordered_map<uint8_t, Ptr<NrSlDataRadioBearerInfo>>
+NrSlUeRrc::GetAllSidelinkTxDataRadioBearers(uint32_t dstL2Id)
+{
+    NS_LOG_FUNCTION(this << dstL2Id);
+    NrSlDrbMapPerL2Id::iterator destIt = m_slTxDrbMap.find(dstL2Id);
+    NS_ASSERT_MSG(destIt != m_slTxDrbMap.end(),
+                  "Unable to find DRB for destination L2 Id "
+                      << dstL2Id << " size " << m_slTxDrbMap.size() << " src " << m_srcL2Id);
+    return destIt->second;
+}
+
+std::unordered_map<uint8_t, Ptr<NrSlDataRadioBearerInfo>>
+NrSlUeRrc::DoGetAllSidelinkTxDataRadioBearers(uint32_t dstL2Id)
+{
+    NS_LOG_FUNCTION(this);
+    return GetAllSidelinkTxDataRadioBearers(dstL2Id);
+}
+
+std::unordered_map<uint8_t, Ptr<NrSlDataRadioBearerInfo>>
+NrSlUeRrc::DoGetAllSidelinkRxDataRadioBearers(uint32_t srcL2Id)
+{
+    NS_LOG_FUNCTION(this);
+    return GetAllSidelinkRxDataRadioBearers(srcL2Id);
+}
+
 void
 NrSlUeRrc::DoRemoveNrSlTxDataRadioBearer(Ptr<NrSlDataRadioBearerInfo> slTxDrb)
 {
@@ -416,6 +441,22 @@ NrSlUeRrc::GetSidelinkRxDataRadioBearer(uint32_t srcL2Id, uint32_t dstL2Id, uint
         return Ptr<NrSlDataRadioBearerInfo>();
     }
     return lcIt->second;
+}
+
+std::unordered_map<uint8_t, Ptr<NrSlDataRadioBearerInfo>>
+NrSlUeRrc::GetAllSidelinkRxDataRadioBearers(uint32_t srcL2Id)
+{
+    NS_LOG_FUNCTION(this << srcL2Id);
+    auto destIt = m_slRxDrbMap.find(std::pair(srcL2Id, m_srcL2Id));
+    if (destIt != m_slRxDrbMap.end())
+    {
+        return destIt->second;
+    }
+    else
+    {
+        NS_LOG_DEBUG("No receive DRB exist for " << srcL2Id);
+        return std::unordered_map<uint8_t, Ptr<NrSlDataRadioBearerInfo>>();
+    }
 }
 
 uint8_t

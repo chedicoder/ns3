@@ -231,6 +231,13 @@ class NrSlUeRrc : public Object
      */
     Ptr<NrSlDataRadioBearerInfo> DoGetSidelinkTxDataRadioBearer(uint32_t dstL2Id, uint8_t lcId);
     /**
+     * \brief Get all NR Sidelink Tx data radio bearers to a destination L2 ID
+     * \param dstL2Id The remote/destination layer 2 id
+     * \return a map containing all of the matching NrSlDataRadioBearerInfo, by logical channel ID
+     */
+    std::unordered_map<uint8_t, Ptr<NrSlDataRadioBearerInfo>> DoGetAllSidelinkTxDataRadioBearers(
+        uint32_t dstL2Id);
+    /**
      * \brief Get NR Sidelink Rx data radio bearer
      * Returns a null pointer if there is no match
      *
@@ -239,6 +246,16 @@ class NrSlUeRrc : public Object
      * \return The NrSlDataRadioBearerInfo, or a null pointer if there is no match
      */
     Ptr<NrSlDataRadioBearerInfo> DoGetSidelinkRxDataRadioBearer(uint32_t srcL2Id, uint8_t lcId);
+
+    /**
+     * \brief Get all NR Sidelink data radio bearers from a source L2 Id
+     * Returns an empty map if there is no match
+     *
+     * \param srcL2Id The source layer 2 id
+     * \return a map containing all of the matching NrSlDataRadioBearerInfo, by logical channel ID
+     */
+    std::unordered_map<uint8_t, Ptr<NrSlDataRadioBearerInfo>> DoGetAllSidelinkRxDataRadioBearers(
+        uint32_t srcL2Id);
 
     /**
      * brief Remove NR Transmission sidelink data radio bearer
@@ -287,6 +304,16 @@ class NrSlUeRrc : public Object
                                                               uint8_t lcId);
 
     /**
+     * \brief Get all NR Sidelink Tx data radio bearers to a given destination L2 Id
+     *
+     * \param dstL2Id The remote/destination layer 2 id
+     *
+     * \return A map containing all matching NrSlDataRadioBearerInfo, by logical channel ID
+     */
+    std::unordered_map<uint8_t, Ptr<NrSlDataRadioBearerInfo>> GetAllSidelinkTxDataRadioBearers(
+        uint32_t dstL2Id);
+
+    /**
      * \brief Get NR Sidelink Rx data radio bearer
      * Returns a null pointer if there is no match
      *
@@ -299,6 +326,17 @@ class NrSlUeRrc : public Object
     Ptr<NrSlDataRadioBearerInfo> GetSidelinkRxDataRadioBearer(uint32_t srcL2Id,
                                                               uint32_t dstL2Id,
                                                               uint8_t lcid);
+
+    /**
+     * \brief Get all NR Sidelink Rx data radio bearers from a given source L2 Id
+     * Returns an empty map if there is no match
+     *
+     * \param srcL2Id The source layer 2 id
+     *
+     * \return A map containing all matching NrSlDataRadioBearerInfo, by logical channel ID
+     */
+    std::unordered_map<uint8_t, Ptr<NrSlDataRadioBearerInfo>> GetAllSidelinkRxDataRadioBearers(
+        uint32_t srcL2Id);
 
     // NR sidelink UE RRC SAP
     NrSlUeRrcSapUser* m_nrSlRrcSapUser{nullptr};           ///< NR SL UE RRC SAP user

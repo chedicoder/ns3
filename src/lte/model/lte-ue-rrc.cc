@@ -263,12 +263,11 @@ LteUeRrc::GetTypeId()
                 UintegerValue(2), // see 3GPP 36.331 UE-TimersAndConstants & RLF-TimersAndConstants
                 MakeUintegerAccessor(&LteUeRrc::m_n311),
                 MakeUintegerChecker<uint8_t>(1, 10))
-            .AddAttribute(
-                "SignallingPacketDelayBudget",
-                "Packet Delay Budget to use for signalling LC",
-                TimeValue(MilliSeconds(20)), // Magic number; not in standard
-                MakeTimeAccessor(&LteUeRrc::m_signallingPdb),
-                MakeTimeChecker())
+            .AddAttribute("SignallingPacketDelayBudget",
+                          "Packet Delay Budget to use for signalling LC",
+                          TimeValue(MilliSeconds(20)), // Magic number; not in standard
+                          MakeTimeAccessor(&LteUeRrc::m_signallingPdb),
+                          MakeTimeChecker())
             .AddTraceSource("MibReceived",
                             "trace fired upon reception of Master Information Block",
                             MakeTraceSourceAccessor(&LteUeRrc::m_mibReceivedTrace),
@@ -3810,6 +3809,8 @@ LteUeRrc::AddNrSlRxDrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid)
     lcInfo.isGbr = true;
     lcInfo.gbr = 65535; // bits/s random value
     lcInfo.mbr = lcInfo.gbr;
+    lcInfo.pdb = m_signallingPdb;
+    lcInfo.dynamic = true;
 
     Ptr<NrSlDataRadioBearerInfo> slDrbInfo = CreateObject<NrSlDataRadioBearerInfo>();
     slDrbInfo->m_sourceL2Id = lcInfo.srcL2Id;
@@ -3890,7 +3891,7 @@ LteUeRrc::DoNotifySidelinkConnectionRelease(uint32_t srcL2Id, uint32_t dstL2Id, 
     NS_LOG_FUNCTION(this << srcL2Id << dstL2Id << +lcid);
 
     // Removing Rx Sl-DRB
-    RemoveNrSlDataRadioBearer(srcL2Id, dstL2Id, lcid);
+    RemoveNrSlDataRadioBearer(false, srcL2Id, dstL2Id, lcid);
     NS_LOG_INFO("Removed Rx SL-DRB related to srcL2Id " << srcL2Id << " lcid " << +lcid);
 }
 
@@ -3903,7 +3904,7 @@ LteUeRrc::DoDeleteNrSlDataRadioBearer(bool isTransmit,
     if (isTransmit)
     {
         // Only one bearer per source/destinationm
-        RemoveNrSlDataRadioBearer(slInfo.m_srcL2Id, slInfo.m_dstL2Id, slInfo.m_lcId);
+        RemoveNrSlDataRadioBearer(true, m_srcL2Id, slInfo.m_dstL2Id, slInfo.m_lcId);
         NS_LOG_INFO("Removed existing TX SL-DRB for dstL2Id " << slInfo.m_dstL2Id << " lcid "
                                                               << +slInfo.m_lcId);
     }
@@ -3924,33 +3925,51 @@ LteUeRrc::DoDeleteNrSlDataRadioBearer(bool isTransmit,
 }
 
 void
-LteUeRrc::RemoveNrSlDataRadioBearer(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid)
+LteUeRrc::RemoveNrSlDataRadioBearer(bool isTransmit,
+                                    uint32_t srcL2Id,
+                                    uint32_t dstL2Id,
+                                    uint8_t lcid)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << isTransmit << srcL2Id << dstL2Id << lcid);
 
-    if (m_srcL2Id == srcL2Id)
+    if (isTransmit)
     {
-        // transmission bearer
-        Ptr<NrSlDataRadioBearerInfo> slTxDrb =
-            m_nrSlRrcSapUser->GetSidelinkTxDataRadioBearer(dstL2Id, lcid);
-        lcid = slTxDrb->m_logicalChannelIdentity;
-        m_nrSlRrcSapUser->RemoveNrSlTxDataRadioBearer(slTxDrb);
+        NS_LOG_DEBUG("Transmission bearer");
+        auto bearers = m_nrSlRrcSapUser->GetAllSidelinkTxDataRadioBearers(dstL2Id);
+        for (auto i : bearers)
+        {
+            Ptr<NrSlDataRadioBearerInfo> slTxDrb = i.second;
+            lcid = slTxDrb->m_logicalChannelIdentity;
+            NS_LOG_DEBUG("Found txDrb with lcId " << +lcid);
+            m_nrSlRrcSapUser->RemoveNrSlTxDataRadioBearer(slTxDrb);
+
+            // Inform BWP manager and MAC logical channel
+            std::vector<uint8_t> bwpIds;
+            bwpIds = m_nrSlUeBwpmRrcSapProvider->RemoveNrSlDrbLc(lcid, srcL2Id, dstL2Id);
+            for (std::vector<uint8_t>::iterator it = bwpIds.begin(); it != bwpIds.end(); ++it)
+            {
+                m_nrSlUeCmacSapProvider.at(*it)->RemoveNrSlLc(lcid, srcL2Id, dstL2Id);
+            }
+        }
     }
     else
     {
-        // reception bearer
-        Ptr<NrSlDataRadioBearerInfo> slRxDrb =
-            m_nrSlRrcSapUser->GetSidelinkRxDataRadioBearer(srcL2Id, lcid);
-        lcid = slRxDrb->m_logicalChannelIdentity;
-        m_nrSlRrcSapUser->RemoveNrSlRxDataRadioBearer(slRxDrb);
-    }
+        auto bearers = m_nrSlRrcSapUser->GetAllSidelinkRxDataRadioBearers(srcL2Id);
+        for (auto i : bearers)
+        {
+            Ptr<NrSlDataRadioBearerInfo> slRxDrb = i.second;
+            lcid = slRxDrb->m_logicalChannelIdentity;
+            NS_LOG_DEBUG("Found rxDrb with lcId " << +lcid);
+            m_nrSlRrcSapUser->RemoveNrSlRxDataRadioBearer(slRxDrb);
 
-    // Inform BWP manager and MAC logical channel
-    std::vector<uint8_t> bwpIds;
-    bwpIds = m_nrSlUeBwpmRrcSapProvider->RemoveNrSlDrbLc(lcid, srcL2Id, dstL2Id);
-    for (std::vector<uint8_t>::iterator it = bwpIds.begin(); it != bwpIds.end(); ++it)
-    {
-        m_nrSlUeCmacSapProvider.at(*it)->RemoveNrSlLc(lcid, srcL2Id, dstL2Id);
+            // Inform BWP manager and MAC logical channel
+            std::vector<uint8_t> bwpIds;
+            bwpIds = m_nrSlUeBwpmRrcSapProvider->RemoveNrSlDrbLc(lcid, srcL2Id, dstL2Id);
+            for (std::vector<uint8_t>::iterator it = bwpIds.begin(); it != bwpIds.end(); ++it)
+            {
+                m_nrSlUeCmacSapProvider.at(*it)->RemoveNrSlLc(lcid, srcL2Id, dstL2Id);
+            }
+        }
     }
 }
 

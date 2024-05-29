@@ -1635,11 +1635,15 @@ class LteUeRrc : public Object
     /**
      * \brief Remove NR SIdelink Data Radio Bearer
      *
+     * \param isTransmit Whether the bearer to remove is a transmit bearer
      * \param srcL2Id The sidelink source layer 2 id
      * \param dstL2Id The sidelink destination layer 2 id
      * \param lcid The logical channel id
      */
-    void RemoveNrSlDataRadioBearer(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid);
+    void RemoveNrSlDataRadioBearer(bool isTransmit,
+                                   uint32_t srcL2Id,
+                                   uint32_t dstL2Id,
+                                   uint8_t lcid);
 
     /**
      * \brief Populate NR SL Pool to lower layers
